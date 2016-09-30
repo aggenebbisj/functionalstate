@@ -2,17 +2,28 @@
 
 ## From mutable to immutable
 
+
 ## Outline
 
 - Why?
-  - What was the problem?
-  - How does immutability solve this? 
+  - What is the problem?
+    - f(x) shouldBe f(x)
+    - side effects (assignments that change the state of the system)
+
+  - How does Functional programming solve this?
+     - side-effect free (substition model)
+        - No temporal couplings
+        - Fewer concurrency issues
+        - No asking what;s the state?
+
 - But how can anything happen if you never do anything?
   - State changes still happen
+
 - Example
   - Random numbers (SecureRandom?)
   - Candy dispenser?
   - [Traffic light?](http://timperrett.com/2013/11/25/understanding-state-monad/)
+
 - Advantages
   - You always know the State that was used to create the next value
   - You can share an instance 
@@ -21,7 +32,73 @@
 - 
 ---
 
+## What is the problem?
+
+
+### What is the problem?
+
+```scala
+f(x) shouldBe f(x)
+```
+
+<aside class="notes">
+This sounds logical, but side-effecting functions throws spanner in the works.
+Functions that have assignments that change the state of the system,
+break this logical sounding/seeing equation.
+
+By the way shouldBe is from the Scala Test framework, and this roughly translates to assertEquals.
+</aside>
+
+
+### What is the problem?
+
+```scala
+f(x) shouldBe f(x)
+
+def f(x: Int): Int = x + x
+```
+
+<aside class="notes">
+With pure functions, functions without side-effects this would be true.
+We have a simple function that doubles it argument.
+
+An expression is said to be referentially transparent if it can be replaced with its value
+without changing the behavior of a program
+(in other words, yielding a program that has the same effects and output on the same input).
+</aside>
+
+
+### What is the problem?
+
+```scala
+f(x) shouldBe f(x)
+
+var y = 0
+
+def f(x: Int): Int = {
+  y = y + x
+  y
+}
+```
+
+<aside class="notes">
+</aside>
+
+
+
 ## Referential transparancy
+
+
+### Referential transparancy
+
+>An expression is said to be  
+referentially transparent  
+if it can be **replaced**  
+with its corresponding value   
+**without changing** the program's behavior
+
+
+### Benefits
 
 * Testable
 * Composable
@@ -71,7 +148,9 @@ def rollDie: Int = {
 
 
 ```scala
-trait RNG {	def nextInt: (RNG, Int)}
+trait RNG {
+	def nextInt: (RNG, Int)
+}
 ```
 
 
@@ -91,7 +170,9 @@ type Rand[+A] = RNG => (RNG, A)
 
 
 ```scala
-trait RNG {	def nextInt: (RNG, Int)}
+trait RNG {
+	def nextInt: (RNG, Int)
+}
 
 RNG => (RNG, Int)
 
@@ -118,7 +199,10 @@ unit(1) => rng => (1, rng)
 
 
 ```scala
-def map[A,B](stateGenerator: RNG => (RNG, A))(f: A => B): RNG => (RNG, B) = rng => {  val (a, rng2) = stateGenerator(rng)    (f(a), rng2) // transform value here  }
+def map[A,B](stateGenerator: RNG => (RNG, A))(f: A => B): RNG => (RNG, B) = rng => {
+  val (a, rng2) = stateGenerator(rng)
+    (f(a), rng2) // transform value here
+  }
   
 val newF = unit(1).map(x => x + 1) // function that always returns 2
 
