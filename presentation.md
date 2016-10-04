@@ -242,19 +242,20 @@ def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = {
 
 
 ```scala
-def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] = rng => {
-  val (a, rngA) = f(rng)
-  g(a)(rngA)
-}
+def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] = 
+  rng => {
+    val (a, rngA) = f(rng)
+    g(a)(rngA)
+  }
 ```
 
 
 ```                                                    
-       -----                         -----         
-       |   | -> rngA                 |   | -> rngB 
-rng -> | f |             a -> rng -> | g |         
-       |   | -> a                    |   | -> b
-       -----                         -----         
+       -----                          -----         
+       |   | -> rngA                  |   | -> rngB 
+rng -> | f |             a -> rngA -> | g |         
+       |   | -> a                     |   | -> b
+       -----                          -----         
 ```
 
 
