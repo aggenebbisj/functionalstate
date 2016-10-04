@@ -68,7 +68,7 @@ without changing the behavior of a program
 </aside>
 
 
-### What is the problem?
+### Side effects
 
 ```scala
 f(x) shouldBe f(x)
@@ -86,10 +86,10 @@ def f(x: Int): Int = {
 
 
 
-## Referential transparancy
+## Referential transparency
 
 
-### Referential transparancy
+### Referential transparency
 
 >An expression is said to be  
 referentially transparent  
@@ -97,6 +97,13 @@ if it can be **replaced**
 with its corresponding value   
 **without changing** the program's behavior
 
+<aside class="notes">
+This means that you have no assignments that change the global change.
+This is why immutability is so important.
+</aside>
+
+
+---
 
 ### Benefits
 
