@@ -435,7 +435,7 @@ FlatMap
 </aside>
 
 
-
+### Map
 ```scala
 case class State[S, +A](run: S => (A, S)) {
   def map[B](f: A => B): State[S, B] = State { s =>
@@ -447,12 +447,49 @@ case class State[S, +A](run: S => (A, S)) {
 ```
 
 
+### Map Usage
+```scala
+   
+        input(Coin)
+          .map { case (coins, _) => s"Returns are EUR $coins" }
+```
+
+
+### Map Usage
+```scala
+      val pipeline: State[Machine, String] =
+        input(Coin)
+          .map { case (coins, _) => s"Returns are EUR $coins" }
+          
+      val (message, _) = pipeline run machine
+      
+      message shouldBe "Returns are EUR 11"
+
+```
+
+
+
+### FlatMap
 ```scala
 case class State[S, +A](run: S => (A, S)) {
-  def map[B](f: A => B): State[S, B] = State { s =>
-    val (a, s1) = run(s)
-    (f(a), s1)
-  }
+  def map[B](f: A => B): State[S, B] = 
+    State { s =>
+      val (a, s1) = run(s)
+      (f(a), s1)
+    }
+
+  def flatMap[B](f: A => State[S, B]): State[S, B] = ???
+```
+
+
+### FlatMap
+```scala
+case class State[S, +A](run: S => (A, S)) {
+  def map[B](f: A => B): State[S, B] = 
+    State { s =>
+      val (a, s1) = run(s)
+      (f(a), s1)
+    }
 
   def flatMap[B](f: A => State[S, B]): State[S, B] =
     State { s =>
@@ -460,6 +497,27 @@ case class State[S, +A](run: S => (A, S)) {
       f(a).run(s1)
     }
 ```
+
+
+### Usage FlatMap
+```scala
+   
+  input(Coin)
+    .flatMap(_ => input(Turn))
+```
+
+
+### Usage FlatMap
+```scala
+val pipeline: State[Machine, (Int, Int)] =
+  input(Coin)
+    .flatMap(_ => input(Turn))
+
+val ((coins, candies), _) = pipeline run machine
+coins shouldBe 11
+candies shouldBe 4
+```
+
 
 
 ### Combine in Maintenance
