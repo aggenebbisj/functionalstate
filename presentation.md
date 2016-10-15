@@ -32,7 +32,68 @@
 - 
 ---
 
+## Traditional approach
+
+
+![](/img/object-oriented-software-construction.jpg)
+
+Note: who knows this classic writing?
+First edition written in 1988 by Bertrand Meyer, the second edition at a whopping 1200 pages appeared in 1997
+"Meyer pursues the ideal of simple, elegant and user-friendly computer languages and 
+ is one of the earliest and most vocal proponents of object-oriented programming (OOP). 
+ His book Object-Oriented Software Construction is widely considered to be the best work on presenting the case for OOP."
+ https://en.wikipedia.org/wiki/Bertrand_Meyer
+
+
+### Object-oriented software construction
+
+>When objects take over, their former masters, the functions, become their vassals.
+
+> p. 684
+Note: Bertrand argues that the top-down functional decomposition has deficiencies and introduces as a design rule 
+the 'Law of inversion' stating that "If your routines exchange too many data, put your routines in your data".
+Note that he is not talking about functions in the sense of functional programming, 
+but on a functional, top-down solution
+
+
+### The domain
+
+```scala
+sealed trait Input
+case object Coin extends Input
+case object Turn extends Input
+
+class Machine(locked: Boolean, candies: Int, coins: Int) {
+  def process(input: Input): Machine = ???
+}
+```
+<aside class="notes">
+Domain: a vending machine with candies. The vending machine has two inputs for customers. 
+They can insert money and they can turn the knob to get the candy after they inserted the money.
+</aside>
+
+
+### Object-oriented approach
+
+```scala
+val machine = Machine(locked = true, candies = 5, coins = 10)
+
+machine process Coin
+machine process Turn
+
+machine.coins shouldBe 11
+machine.candies shouldBe 4
+```
+
+Note: Meyer p. 748 "The features that characterize a class are divided into commands and queries. 
+A command serves to modify objects, a query to return information about objects."
+p. 749 A function (defined as routine that returns a result) produces a concrete side effect if its body contains any of the following
+* an assignment, assignment attempt or creation instruction whose target is an attribute * a procedure call
+On p. 751 he formulates the 'Command-Query separation principle' as "Functions should not produce abstract side effects"
+---
+
 ## What is the problem?
+
 
 
 ### What is the problem?
@@ -82,8 +143,9 @@ def f(x: Int): Int = {
 ```
 
 <aside class="notes">
+In this case there is an assignment to some outer scope, which changes the outcome for all future invocations.
+This function is not pure, it has side-effects and makes the program a lot harder to reason about.
 </aside>
-
 
 
 ## Referential transparency
@@ -105,7 +167,6 @@ This is why immutability is so important.
 
 But it also has more impact. For example on exceptions (try/catch semantics). 
 </aside>
-
 
 ---
 
@@ -411,10 +472,20 @@ Collecting means extracting the coins from the machine.
 </aside>
 
 
-### Combine in Maintenance
+### Combinator
 
 
-### Combine
+
+### Combinator
+
+>"A combinator is a higher-order function 
+>that uses only function application and 
+>earlier defined combinators 
+>to define a result from its arguments."
+
+Note: from https://en.wikipedia.org/wiki/Combinatory_logic
+
+### State
 
 ```scala
 case class State[S, +A](run: S => (A, S)) {
@@ -428,11 +499,10 @@ case class State[S, +A](run: S => (A, S)) {
     
 ```
 
-<aside class="notes">
-For combining State operations we need higher-order functions map and flatMap.
+Note: For combining State operations we need higher-order functions map and flatMap.
 Map takes a function which takes an A and returns a B, which in turn returns a new State and B.
 FlatMap
-</aside>
+
 
 
 ### Map
