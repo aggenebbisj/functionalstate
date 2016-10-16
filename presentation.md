@@ -56,40 +56,55 @@ Note that he is not talking about functions in the sense of functional programmi
 but on a functional, top-down solution
 
 
-### The domain
+### The object-oriented domain
 
 ```scala
 sealed trait Input
 case object Coin extends Input
 case object Turn extends Input
 
-class Machine(locked: Boolean, candies: Int, coins: Int) {
-  def process(input: Input): Machine = ???
-}
+class Machine(private var _candies: Int,
+              private var _coins: Int) {
+
+  // commands modify objects
+  def process(input: Input): Unit
+  def collect(): Unit
+  def refill(newCandies: Int): Unit 
+
+  // 'Queries' return information about objects
+  def candies = _candies
+  def coins = _coins
+
 ```
 <aside class="notes">
-Domain: a vending machine with candies. The vending machine has two inputs for customers. 
+Domain: a vending machine from which you can buy candies. 
+The vending machine can process two types of inputs from customers. 
 They can insert money and they can turn the knob to get the candy after they inserted the money.
-</aside>
-
-
-### Object-oriented approach
-
-```scala
-val machine = Machine(locked = true, candies = 5, coins = 10)
-
-machine process Coin
-machine process Turn
-
-machine.coins shouldBe 11
-machine.candies shouldBe 4
-```
+The machine can be refilled with a new stock of candies.
+And the returns of the machine can be collected, all coins will be extracted. 
 
 Note: Meyer p. 748 "The features that characterize a class are divided into commands and queries. 
 A command serves to modify objects, a query to return information about objects."
 p. 749 A function (defined as routine that returns a result) produces a concrete side effect if its body contains any of the following
 * an assignment, assignment attempt or creation instruction whose target is an attribute * a procedure call
 On p. 751 he formulates the 'Command-Query separation principle' as "Functions should not produce abstract side effects"
+
+</aside>
+
+
+### Object-oriented approach
+
+```scala
+val machine = Machine(candies = 5, coins = 10)
+
+machine.process(Coin)
+machine.process(Turn)
+
+machine.coins shouldBe 11
+machine.candies shouldBe 4
+```
+
+Note: Do we want to say anything about the apply-method in the companion object?
 ---
 
 ## What is the problem?
@@ -174,40 +189,12 @@ But it also has more impact. For example on exceptions (try/catch semantics).
 
 * Testable
 * Composable
-* Modular
 * Parallellizable
 
----
+Note: * Modular why? What are the benefits?
+And benefits of what??
 
-## Examples transforming functions
-
-```bash
-scala> val f: Int => Int = i => i
-f: Int => Int = <function1>
-
-scala> f(3)
-res0: Int = 3
-
-scala> f(4)
-res1: Int = 4
-
-scala> def map(f: Int => Int)(tranform: Int => String): Int => String = {
-     |   i => transform(f(i))
-     | }
-map: (f: Int => Int)(tranform: Int => String)Int => String
-
-scala> map(f)(i => "Hello " + i)
-res2: Int => String = <function1>
-
-scala> val f2 = map(f)(i => "Hello " + i)
-f2: Int => String = <function1>
-
-scala> f2(3)
-res3: String = Hello 3
-```
-
----
-
+--- 
 ## State
 <aside class="notes">
 Erik Meijer: "On the other hand, radically eradicating all effects—explicit and implicit—renders programming languages useless." (E. Meijer, ACMQueue) 
@@ -221,20 +208,23 @@ Image: "Heraclitus by Johannes Moreelse. The image depicts him as "the weeping p
 Heraclitus of Ephesus, 535 – c. 475 BC,  most known quotation is 'Panta rhei' or everything flows.
 "Ever-newer waters flow on those who step into the same rivers." or "All entities move and nothing remains still". 
 Basically stating that the world is constantly changing.
+"All entities move and nothing remains still"
 
 image src: https://en.wikipedia.org/wiki/Heraclitus#/media/File:Utrecht_Moreelse_Heraclite.JPG
 </aside>
 
-### Heraclitus
-"All entities move and nothing remains still"
 
-
+### Random number generation
 ```scala
-def rollDie: Int = {
+def rollDice: Int = {
     val rng = new scala.util.Random
     rng.nextInt(6)
 }
 ```
+<aside class="notes">
+What if we roll the dice? and we want to assert the outcome?
+Add the test
+</aside>
 
 
 ```scala
@@ -485,6 +475,7 @@ Collecting means extracting the coins from the machine.
 
 Note: from https://en.wikipedia.org/wiki/Combinatory_logic
 
+
 ### State
 
 ```scala
@@ -612,4 +603,87 @@ def maintain(candies: Int): State[Machine, (Int, Int)] =
 ```
 <aside class="notes">
 Or using a For-comprehension which compiles to the same code.
+</aside>
+
+
+---
+
+## Examples transforming functions
+
+```bash
+scala> val f: Int => Int = i => i
+f: Int => Int = <function1>
+
+scala> f(3)
+res0: Int = 3
+
+scala> f(4)
+res1: Int = 4
+
+scala> def map(f: Int => Int)(tranform: Int => String): Int => String = {
+     |   i => transform(f(i))
+     | }
+map: (f: Int => Int)(tranform: Int => String)Int => String
+
+scala> map(f)(i => "Hello " + i)
+res2: Int => String = <function1>
+
+scala> val f2 = map(f)(i => "Hello " + i)
+f2: Int => String = <function1>
+
+scala> f2(3)
+res3: String = Hello 3
+```
+
+---
+### Random number generation
+```scala
+def rollDie: Int = {
+    val rng = new scala.util.Random
+    rng.nextInt(6)
+}
+```
+
+
+```scala
+trait RNG {
+	def nextInt: (RNG, Int)
+}
+```
+
+
+```scala
+S => (S, A)
+```
+
+
+```scala
+S1 => (S2, A)
+```
+
+
+```scala
+type Rand[+A] = RNG => (RNG, A)
+```
+
+
+```scala
+trait RNG {
+	def nextInt: (RNG, Int)
+}
+
+RNG => (RNG, Int)
+
+def int(rng: RNG): (RNG, Int) = rng.nextInt
+
+val int: RNG => (RNG, Int) = rng => rng.nextInt
+
+$ int(someRNG)
+
+val int: Rand[Int] = rng => rng.nextInt
+```
+
+
+<aside class="notes">
+Hier moet testability nog aan de orde komen.
 </aside>
