@@ -211,6 +211,9 @@ Basically stating that the world is constantly changing.
 "All entities move and nothing remains still"
 
 image src: https://en.wikipedia.org/wiki/Heraclitus#/media/File:Utrecht_Moreelse_Heraclite.JPG
+
+Random Number Generation is a typical case of programming with side effect. 
+
 </aside>
 
 
@@ -220,11 +223,25 @@ def rollDice: Int = {
     val rng = new scala.util.Random
     rng.nextInt(6)
 }
+
+"expect valid dice" in {
+  val beValidDice = be > 0 and be <= 6
+  rollDice should beValidDice
+}
+
 ```
-<aside class="notes">
-What if we roll the dice? and we want to assert the outcome?
-Add the test
-</aside>
+
+Note:
+A method on Random with no parameters delivers a pseudo random number. It must depend on some form of internal/global state!
+Given the seed a Random will deliver the same sequence of numbers, but with each invocation the value changes. 
+This method is NOT referential transparent!
+
+What if we roll the dice? and we want to assert the outcome? Is this correct? Or should we do this 1.000 times.
+But wait, there is a bug. This method has an off-by-one error.
+From the API of nextInt: Returns a pseudorandom, uniformly distributed int value between 0 (inclusive) and the specified value (exclusive), 
+drawn from this random number generator's sequence.
+
+How can we fix this? Keep track of the number of invocations of Random? No! We will avoid using side-effects.
 
 
 ```scala
@@ -232,43 +249,40 @@ trait RNG {
 	def nextInt: (RNG, Int)
 }
 ```
+
+Note: 
+"The key to recovering referential transparency is to make the state updates explicit."
+This nextInt method return a random generated number and the new state, leaving the old state unmodified.
+"In effect, we separate the concern of computing what the next state is from the concern of communicating the new state to the rest of the program."
+This can be expanded to basically all statefull API's. 
+Just let the API compute the next state and return the value next to the new state, leaving the old state intact.
+
+
+```scala
+val original: RNG = ...
+
+val (value, nextRng) = original.nextInt
+
+(value, nextRng) shouldBe original.nextInt
+
+```
+
+Note: say we create a Random Number Generator instance.
+nextInt will generate a tuple of a random generated value and the new Random Number Generator.
+Even if we take the original RNG and call nextInt again, we get back the same response as on the first call.
+It has become referential transparent again!
 
 
 ```scala
 S => (S, A)
 ```
 
-
-```scala
-S1 => (S2, A)
-```
+Note: Should we move these slides to the composability part?
 
 
 ```scala
-type Rand[+A] = RNG => (RNG, A)
+S => (S', A)
 ```
-
-
-```scala
-trait RNG {
-	def nextInt: (RNG, Int)
-}
-
-RNG => (RNG, Int)
-
-def int(rng: RNG): (RNG, Int) = rng.nextInt
-
-val int: RNG => (RNG, Int) = rng => rng.nextInt
-
-$ int(someRNG)
-
-val int: Rand[Int] = rng => rng.nextInt
-```
-
-
-<aside class="notes">
-Hier moet testability nog aan de orde komen.
-</aside>
 
 
 ---
@@ -375,21 +389,6 @@ class Machine(locked: Boolean, candies: Int, coins: Int) {
 Domain: a vending machine with candies. The vending machine has two inputs for customers. 
 They can insert money and they can turn the knob to get the candy after they inserted the money.
 </aside>
-
-
-### Usage OO style
-
-```scala
-      val inputs: List[Input] = List(Coin, Turn, ...)
-
-      val machine = Machine(locked = true, candies = 5, coins = 10)
-      for (i <- inputs) machine process i
-      machine.refill(100 - machine.candies)
-      machine.collect()
-
-      machine.coins shouldBe 0
-      machine.candies shouldBe 100
-```
 
 
 ### Using a state function (?? What should be the better name)
