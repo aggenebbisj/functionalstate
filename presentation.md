@@ -5,117 +5,63 @@
 
 ## Outline
 
-- Why?
-  - What is the problem?
-    - f(x) shouldBe f(x)
-    - side effects (assignments that change the state of the system)
+- The problem with mutable state
+  - (Shared) mutable state
+  - Referential transparency
+    - Testable
+    - Composable
+    - Parallellizable
+- Transitioning from mutable to immutable
+  - Domain
+  - OO approach with mutable state
+    - Example testability problems
+    - Example composability problems
+    - Example parallellizable problems
+  - Immutable approach without State Monad
+    - Copy on write 	
+    - Pros
+      - Testable
+      - Parallellizable
+      - Composable?
+  - State Monad
+    - Derive from type signature
+    - Wiring done automatically
+    - Composable  
 
-  - How does Functional programming solve this?
-     - side-effect free (substition model)
-        - No temporal couplings
-        - Fewer concurrency issues
-        - No asking what;s the state?
-
-- But how can anything happen if you never do anything?
-  - State changes still happen
-
-- Example
-  - Random numbers (SecureRandom?)
-  - Candy dispenser?
-  - [Traffic light?](http://timperrett.com/2013/11/25/understanding-state-monad/)
-
-- Advantages
-  - You always know the State that was used to create the next value
-  - You can share an instance 
-  - You can flatMap etc. making it more composable
-- Performance / Functional/Persistent Data Structures
-- 
 ---
 
-## Traditional approach
+## The problem with mutable state
 
 
-![](/img/object-oriented-software-construction.jpg)
+### Shared mutable state
 
-Note: who knows this classic writing?
-First edition written in 1988 by Bertrand Meyer, the second edition at a whopping 1200 pages appeared in 1997
-"Meyer pursues the ideal of simple, elegant and user-friendly computer languages and 
- is one of the earliest and most vocal proponents of object-oriented programming (OOP). 
- His book Object-Oriented Software Construction is widely considered to be the best work on presenting the case for OOP."
- https://en.wikipedia.org/wiki/Bertrand_Meyer
+- Sharing is no fun
+- Non-deterministic 
+- Side effects
+- Hard(er) to reason about 
 
 
-### Object-oriented software construction
-
->When objects take over, their former masters, the functions, become their vassals.
-
-> p. 684
-Note: Bertrand argues that the top-down functional decomposition has deficiencies and introduces as a design rule 
-the 'Law of inversion' stating that "If your routines exchange too many data, put your routines in your data".
-Note that he is not talking about functions in the sense of functional programming, 
-but on a functional, top-down solution
-
-
-### The object-oriented domain
+### Try calling this function more than once...
 
 ```scala
-sealed trait Input
-case object Coin extends Input
-case object Turn extends Input
+var y = 0
 
-class Machine(private var _candies: Int,
-              private var _coins: Int) {
-
-  // commands modify objects
-  def process(input: Input): Unit
-  def collect(): Unit
-  def refill(newCandies: Int): Unit 
-
-  // 'Queries' return information about objects
-  def candies = _candies
-  def coins = _coins
-
+def f(x: Int): Int = {
+  y = y + x + x
+  y
+}
 ```
-<aside class="notes">
-Domain: a vending machine from which you can buy candies. 
-The vending machine can process two types of inputs from customers. 
-They can insert money and they can turn the knob to get the candy after they inserted the money.
-The machine can be refilled with a new stock of candies.
-And the returns of the machine can be collected, all coins will be extracted. 
 
-Note: Meyer p. 748 "The features that characterize a class are divided into commands and queries. 
-A command serves to modify objects, a query to return information about objects."
-p. 749 A function (defined as routine that returns a result) produces a concrete side effect if its body contains any of the following
-* an assignment, assignment attempt or creation instruction whose target is an attribute * a procedure call
-On p. 751 he formulates the 'Command-Query separation principle' as "Functions should not produce abstract side effects"
-
-</aside>
+`f(f(2)) == 4 + 4 + 4 != f(4)`
 
 
-### Object-oriented approach
+### `f(x) shouldBe f(x)`
 
 ```scala
-val machine = Machine(candies = 5, coins = 10)
-
-machine.process(Coin)
-machine.process(Turn)
-
-machine.coins shouldBe 11
-machine.candies shouldBe 4
+def f(x: Int): Int = x + x
 ```
 
-Note: Do we want to say anything about the apply-method in the companion object?
----
-
-## What is the problem?
-
-
-
-### What is the problem?
-
-```scala
-f(x) shouldBe f(x)
-```
+`f(f(2)) == f(4)`
 
 <aside class="notes">
 This sounds logical, but side-effecting functions throws spanner in the works.
@@ -125,45 +71,6 @@ break this logical sounding/seeing equation.
 By the way shouldBe is from the Scala Test framework, and this roughly translates to assertEquals.
 </aside>
 
-
-### What is the problem?
-
-```scala
-f(x) shouldBe f(x)
-
-def f(x: Int): Int = x + x
-```
-
-<aside class="notes">
-With pure functions, functions without side-effects this would be true.
-We have a simple function that doubles it argument.
-
-An expression is said to be referentially transparent if it can be replaced with its value
-without changing the behavior of a program
-(in other words, yielding a program that has the same effects and output on the same input).
-</aside>
-
-
-### Side effects
-
-```scala
-f(x) shouldBe f(x)
-
-var y = 0
-
-def f(x: Int): Int = {
-  y = y + x
-  y
-}
-```
-
-<aside class="notes">
-In this case there is an assignment to some outer scope, which changes the outcome for all future invocations.
-This function is not pure, it has side-effects and makes the program a lot harder to reason about.
-</aside>
-
-
-## Referential transparency
 
 
 ### Referential transparency
@@ -183,10 +90,10 @@ This is why immutability is so important.
 But it also has more impact. For example on exceptions (try/catch semantics). 
 </aside>
 
----
 
-### Benefits
+### Benefits of immutability
 
+* Easier to reason about
 * Testable
 * Composable
 * Parallellizable
@@ -195,7 +102,355 @@ Note: * Modular why? What are the benefits?
 And benefits of what??
 
 --- 
+
+# Transitioning from mutable to immutable
+
+
+## The domain
+
+![](/img/candydispenser.jpg)
+
+Note:
+TODO Make image full size, bottom is clipped now
+A vending machine from which you can buy candies. 
+- The vending machine can process two types of inputs from customers. 
+  1. They can insert money 
+  2. They can turn the knob to get the candy after they inserted the money.
+- The machine can be refilled with a new stock of candies.
+- The returns of the machine can be collected, all coins will be extracted. 
+
+---
+
+## The traditional approach
+
+![](/img/object-oriented-software-construction.jpg)
+
+Note: who knows this classic writing?
+First edition written in 1988 by Bertrand Meyer, the second edition at a whopping 1200 pages appeared in 1997
+"Meyer pursues the ideal of simple, elegant and user-friendly computer languages and 
+ is one of the earliest and most vocal proponents of object-oriented programming (OOP). 
+ His book Object-Oriented Software Construction is widely considered to be the best work on presenting the case for OOP."
+ https://en.wikipedia.org/wiki/Bertrand_Meyer
+
+
+## A first attempt
+
+```scala
+sealed trait Input
+case object Coin extends Input
+case object Turn extends Input
+
+class Machine(private var _candies: Int,
+              private var _coins: Int) {
+
+  // 'Commands' modify machine
+  def process(inputs: List[Input]): Int 
+
+  // 'Queries' return information about machine
+  def candies = _candies
+  def coins = _coins
+}
+```
+
+<aside class="notes">
+TODO kan command nog? Het returnt geen Unit meer nu.
+Meyer p. 748 "The features that characterize a class are divided into commands and queries. 
+A command serves to modify objects, a query to return information about objects."
+p. 749 A function (defined as routine that returns a result) produces a concrete side effect if its body contains any of the following
+* an assignment, assignment attempt or creation instruction whose target is an attribute * a procedure call
+On p. 751 he formulates the 'Command-Query separation principle' as "Functions should not produce abstract side effects"
+</aside>
+
+
+## Taking it for a spin
+
+```scala
+val machine = new Machine(_candies = 5, _coins = 10)
+
+machine.process(List(Coin, Turn))
+
+machine.coins shouldBe 11
+machine.candies shouldBe 4
+```
+
+
+## Testing it
+
+TODO maybe something with if statement that changes behaviour after x turns?
+
+---
+
+## Introducing immutability
+
+
+### Remember?
+
+```scala
+sealed trait Input
+case object Coin extends Input
+case object Turn extends Input
+
+class Machine(private var _candies: Int,
+              private var _coins: Int) {
+
+  // 'Commands' modify machine
+  def process(inputs: List[Input]): Int 
+
+  // 'Queries' return information about machine
+  def candies = _candies
+  def coins = _coins
+}
+```
+
+
+### Copy on write
+
+```scala
+sealed trait Input
+case object Coin extends Input
+case object Turn extends Input
+
+case class Machine(candies: Int, coins: Int)
+  
+object Machine {
+  def process(inputs: List[Input], machine: Machine): (Machine, Int)
+}
+```
+
+<aside class="notes">
+We have to introduce companion object here. Best explained for Java people as an object to hold your static methods. We need the methods out of Machine case class to prepare for type signature of State Monad.
+</aside>
+
+
+## Do you spot the bug?
+
+```scala
+val m = Machine(candies = 100, coins = 0)
+val p1 = List[Input](Coin, Turn, Coin, Coin, Turn)
+val (m2, c) = Machine.process(p1, m)
+val p2 = List[Input](Coin, Coin, Turn)
+val (m3, c2) = Machine.process(p2, m)
+```
+
+
+## Cons
+
+- Manual wiring of state
+
+---
+
+## Functional State
+
+
+## Let's look at the type signature
+
+`def process(inputs: List[Input], machine: Machine): (Machine, Int)`
+
+===
+
+`def process(inputs: List[Input])(machine: Machine): (Machine, Int)`
+
+
+## `Machine => (Machine, Int)`
+
+
+# `S => (S, A)`
+
+Note:
+`S1 => (S2, A)`
+
+
+## Let's wrap this in a class
+
+```scala
+class State[S, +A](f: S => (S, A)) {
+  def run(initial: S): (S, A) = f(initial)
+}
+```
+
+<aside class="notes">
+Without combinators the class does not do much of course. We need the class because unlike JavaScript we cannot add methods to functions.
+</aside>
+
+
+## Doing the mechanical refactoring
+
+```scala
+def process(inputs: List[Input])(machine: Machine): (Machine, Int) = {
+  ...
+}
+```
+
+becomes
+
+```scala
+def process(inputs: List[Input]): new State[Machine, Int](machine =>
+  ...
+)
+```
+
+
+## The implementation
+
+```scala
+object Machine {
+  def process(is: List[Input], m: Machine): (Machine, Int) =
+    is.foldLeft((m, m.candies)) { case ((m, c), input) => 
+      input match {
+        case Coin => (m.copy(coins = m.coins + 1), m.candies)
+        case Turn => (m.copy(candies = m.candies - 1), m.candies)
+      } 
+    }
+}
+```
+
+<aside class="notes">
+Possibly skip this slide and the next. Could be too complex with the foldLeft.
+</aside>
+
+
+## The implementation with State
+
+```
+object Machine {
+  def process(is: List[Input]): State[Machine, Int] =
+    new State( m =>
+      is.foldLeft((m, m.candies)) { case ((m, c), input) =>
+        input match {
+          case Coin => (m.copy(coins = m.coins + 1), m.candies)
+          case Turn => (m.copy(candies = m.candies - 1), m.candies)
+        }
+      }
+    )
+}
+```
+
+---
+
+## Combinators
+
+>"A combinator is a higher-order function 
+>that uses only function application and 
+>earlier defined combinators 
+>to define a result from its arguments."
+
+Note: from https://en.wikipedia.org/wiki/Combinatory_logic
+
+
+## `map`
+
+```scala
+class State[S, +A](f: S => (S, A)) {
+  def run(initial: S): (S, A) = f(initial)
+  
+  def map[B](transform: A => B): State[S, B] =
+    new State[S, B](s => {
+      val (s, a) = run(s)
+      (s, transform(a))
+    })
+  }
+```
+
+
+## Example
+
+```scala
+val inputs = List[Input](Coin, Turn, Coin, Coin, Turn)
+
+val program = Machine.process(inputs)
+                     .map(candies => s"Candies left: $candies")
+
+program.run(Machine(candies = 100, coins = 0))
+```
+
+```
+$ Candies left: 98
+```
+
+
+## `FlatMap`
+
+```scala
+class State[S, +A](f: S => (S, A)) {
+  def run(initial: S): (S, A) = f(initial)
+  ...
+  def flatMap[B](g: A => State[S, B]): State[S, B] =
+    new State(s0 => {
+      val (s1, a) = run(s0)
+      g(a).run(s1)
+    })
+```
+
+
+### `FlatMap` chains two state functions
+
+```                                                    
+                     -----            -----         
+                     |   | ->  m1  -> |   | -> m2 
+               m0 -> | f |            | g |         
+                     |   | ->   a --> |   | -> b
+                     -----            -----         
+```
+
+
+## Using for comprehensions
+
+```scala
+val initial = Machine(candies = 100, coins = 0)
+val p1 = List[Input](Coin, Turn, Coin, Coin, Turn)
+val p2 = List[Input](Coin, Coin, Turn)
+```
+
+```scala
+val program = Machine.process(p1).flatMap(_ => Machine.process(p2))
+val (m, c) = program.run(initial)
+```
+
+```scala
+val program = for {
+  _ <- Machine.process(p1)
+  c <- Machine.process(p2)
+} yield c
+
+val (m, c) = program.run(initial)
+```
+
+---
+
+## Buying a candy
+
+```scala
+def input(input: Input): State[Machine, (Int, Int)] =
+  State { m =>
+    val m1 = m.process(input)
+    ((m1.coins, m1.candies), m1)
+  }
+```
+
+
+## Refilling the machine
+
+```scala
+def refill(newCandies: Int): State[Machine, (Int, Int)] =
+  State { m =>
+    val m1 = m.copy(locked = true, newCandies + m.candies)
+    ((m1.coins, m1.candies), m1)
+  }
+```
+
+
+### Collecting
+```scala
+  def collect(): State[Machine, (Int, Int)] =
+    State { m =>
+      val m1 = m.copy(locked = true, coins = 0)
+      ((m1.coins, m1.candies), m1)
+    }
+```
+
+
 ## State
+
 <aside class="notes">
 Erik Meijer: "On the other hand, radically eradicating all effects—explicit and implicit—renders programming languages useless." (E. Meijer, ACMQueue) 
 </aside>
@@ -385,10 +640,6 @@ class Machine(locked: Boolean, candies: Int, coins: Int) {
   def process(input: Input): Machine = ???
 }
 ```
-<aside class="notes">
-Domain: a vending machine with candies. The vending machine has two inputs for customers. 
-They can insert money and they can turn the knob to get the candy after they inserted the money.
-</aside>
 
 
 ### Using a state function (?? What should be the better name)
@@ -417,62 +668,6 @@ You need to thread the state through all the different state changing functions
 case class State[S, +A](run: S => (A, S))
 
 ```
-<aside class="notes">
-
-</aside>
-
-
-### Buying a candy
-```scala
-def input(input: Input): State[Machine, (Int, Int)] =
-  State { m =>
-    val m1 = m.process(input)
-    ((m1.coins, m1.candies), m1)
-  }
-```
-<aside class="notes">
-Refilling means adding new candies to the machine.
-</aside>
-
-
-### Refilling the machine
-```scala
-def refill(newCandies: Int): State[Machine, (Int, Int)] =
-  State { m =>
-    val m1 = m.copy(locked = true, newCandies + m.candies)
-    ((m1.coins, m1.candies), m1)
-  }
-```
-<aside class="notes">
-Refilling means adding new candies to the machine.
-</aside>
-
-
-### Collecting
-```scala
-  def collect(): State[Machine, (Int, Int)] =
-    State { m =>
-      val m1 = m.copy(locked = true, coins = 0)
-      ((m1.coins, m1.candies), m1)
-    }
-```
-<aside class="notes">
-Collecting means extracting the coins from the machine.
-</aside>
-
-
-### Combinator
-
-
-
-### Combinator
-
->"A combinator is a higher-order function 
->that uses only function application and 
->earlier defined combinators 
->to define a result from its arguments."
-
-Note: from https://en.wikipedia.org/wiki/Combinatory_logic
 
 
 ### State
