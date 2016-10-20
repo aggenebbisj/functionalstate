@@ -1,6 +1,4 @@
-# Functional state
-
-## From mutable to immutable
+# Never change state and still get things done
 Note: or the title on JFall Site "Never change state and still get things done"
 State can be difficult. 
 Concurrent updates can lead to inconsistency, it can be difficult to scale and have you ever tried testing a component with a random element without having to resort to mocking? 
@@ -12,6 +10,13 @@ Familiarity with lambdas is assumed, but no knowledge of functional programming 
 Code examples are in Scala, but no advanced language concepts are used, so knowledge of Java 8 is sufficient. 
 As an audience, I would get a comparative overview of solving a problem in a traditional way with imperative code and with pure functional structures. 
 I would also learn the benefits of purely functional state and its drawbacks.
+
+
+## Agenda
+
+- Traditional OO approach
+- Transitioning from mutable to immutable
+- Immutable with State data structure
 
 
 ## Outline
@@ -41,93 +46,6 @@ I would also learn the benefits of purely functional state and its drawbacks.
 
 ---
 
-## The problem with mutable state
-
-
-### Shared mutable state
-
-- Sharing is no fun
-- Non-deterministic 
-- Side effects
-- Hard(er) to reason about 
-
-Note: 
-What are stating here about 'Shared mutable state'? Benefits, consequences ....
-Sharing is no fun: probable reference to childhood ;-)?
-Non-deterministic has to do with concurrent access and bugs caused by concurrency issues
-Side-effects(yeah, that basically is a consequence of having shared mutable state which is updated.)
-Harder to reason about, true 
-
-
-### Try calling this function more than once...
-
-```scala
-var y = 0
-
-def f(x: Int): Int = {
-  y = y + x + x
-  y
-}
-```
-
-`f(f(2)) == 4 + 4 + 4 != f(4)`
-
-Note: see end of presentation for illustrating it in a different way.
-
-
-### `f(x) shouldBe f(x)`
-
-```scala
-def f(x: Int): Int = x + x
-```
-
-`f(f(2)) == f(4)`
-
-<aside class="notes">
-This sounds logical, but side-effecting functions throws spanner in the works.
-Functions that have assignments that change the state of the system,
-break this logical sounding/seeing equation.
-
-By the way shouldBe is from the Scala Test framework, and this roughly translates to assertEquals.
-</aside>
-
-
-
-### Referential transparency
-
->An expression is said to be  
-referentially transparent  
-if it can be **replaced**  
-with its corresponding value   
-**without changing** the program's behavior
-
-<aside class="notes">
-Calling a function with the same arguments will return the same result every time.
-
-This means that you have no assignments that change the global change.
-This is why immutability is so important.
-
-But it also has more impact. For example on exceptions (try/catch semantics). 
-</aside>
-
-
-### Benefits of immutability
-
-* Easier to reason about
-* Testable
-* Composable
-* Parallellizable
-
-Note: * Modular why? What are the benefits?
-And benefits of what??
-Looking at the red book (p. 79), they argue that 
-the lack of referential transparency implies that the code is not as testable, composable, modular and easily parallelized as it could be.
-
---- 
-
-# Transitioning from mutable to immutable
-
-
 ## The domain
 
 ![](/img/candydispenser.jpg)
@@ -143,7 +61,7 @@ A vending machine from which you can buy candies.
 
 ---
 
-## The traditional approach
+## The traditional OO approach
 
 ![](/img/object-oriented-software-construction.jpg)
 
@@ -181,6 +99,7 @@ A command serves to modify objects, a query to return information about objects.
 p. 749 A function (defined as routine that returns a result) produces a concrete side effect if its body contains any of the following
 * an assignment, assignment attempt or creation instruction whose target is an attribute * a procedure call
 On p. 751 he formulates the 'Command-Query separation principle' as "Functions should not produce abstract side effects"
+TODO: List verwijderen.
 </aside>
 
 
@@ -195,14 +114,95 @@ machine.coins shouldBe 11
 machine.candies shouldBe 4
 ```
 
+---
 
-## Testing it
+## Problems with the traditional approach
+Note: it has served us well, but in modern times there are some problems and an alternative.
 
-TODO maybe something with if statement that changes behaviour after x turns?
+
+### Sharing is no fun
+Note: 
+benoemen problemen rond concurrency met shared mutable state, 
+iets wat in de tijd van het boeknminder speelde. telefoons quad-core.
+
+
+### It makes your head hurt
+Note: With a nice picture of course
+maar WTF is nu het probleem met alleen mutable state
+voorbeeld van f(x: Int .... om te tonen dat het moeilijk is hierover te redeneren.
+
+
+### Try calling this function more than once...
+
+```scala
+var y = 0
+
+def f(x: Int): Int = {
+  y = y + x + x
+  y
+}
+```
+
+`f(f(2)) == 4 + 4 + 4 != f(4)`
+
+Note: use end of presentation.
+
+
+### `f(x) shouldBe f(x)`
+
+```scala
+def f(x: Int): Int = x + x
+```
+
+`f(f(2)) == f(4)`
+
+<aside class="notes">
+This sounds logical, but side-effecting functions throws spanner in the works.
+Functions that have assignments that change the state of the system,
+break this logical sounding/seeing equation.
+
+By the way shouldBe is from the Scala Test framework, and this roughly translates to assertEquals.
+</aside>
 
 ---
 
+## Taking a more functional approach
+Note: door hardware ontwikkelingen is FP sinds een aantal jaren een haalbare kaart.
+Een van de belangrijkste pillars of FP is referential transparency.
+
+### Referential transparency
+
+>An expression is said to be  
+referentially transparent  
+if it can be **replaced**  
+with its corresponding value   
+**without changing** the program's behavior
+
+<aside class="notes">
+Calling a function with the same arguments will return the same result every time.
+
+This means that you have no assignments that change the global change.
+This is why immutability is so important.
+
+But it also has more impact. For example on exceptions (try/catch semantics). 
+</aside>
+
+
+### Benefits of Referential Transparency
+
+* Easier to reason about
+* Testable
+* Composable
+* Parallellizable
+
+Note: * Modular why? What are the benefits?
+Looking at the red book (p. 79), they argue that 
+the lack of referential transparency implies that the code is not as testable, composable, modular and easily parallelized as it could be.
+
+--- 
+
 ## Introducing immutability
+Note: catchy title ;-)
 
 
 ### Remember?
@@ -243,6 +243,7 @@ object Machine {
 We have to introduce companion object here. 
 Best explained for Java people as an object to hold your static methods. 
 We need the methods out of Machine case class to prepare for type signature of State Monad.
+TODO: List verwijderen.
 </aside>
 
 
@@ -257,14 +258,31 @@ val (m3, c2) = Machine.process(p2, m)
 ```
 
 
+## Pros
+- Simple
+- Immutable
+
+<br/>
 ## Cons
 
-- Manual wiring of state
+- Error prone
+
+Note: manual wiring of state through all the calls is error-prone
 
 ---
 
 ## Functional State
 
+
+Note:
+Volgorde:
+- turn method signature
+- Machine => Machine, Int
+- S => S,A
+- Wrap it in a class and refactor.
+- insertCoin naar analogie van turn veranderen met 2 parameter lijsten (currying)
+   - er mist iets, eigenlijk welk maar in dit geval is a Unit.
+   
 
 ## Let's look at the type signature
 
@@ -293,7 +311,8 @@ class State[S, +A](f: S => (S, A)) {
 ```
 
 <aside class="notes">
-Without combinators the class does not do much of course. We need the class because unlike JavaScript we cannot add methods to functions.
+Without combinators the class does not do much of course. 
+We need the class because unlike JavaScript we cannot add methods to functions.
 </aside>
 
 
@@ -374,7 +393,7 @@ class State[S, +A](f: S => (S, A)) {
     })
   }
 ```
-
+Note: Voor deze slide plaatje met werking van map.
 
 ## Example
 
@@ -392,6 +411,22 @@ $ Candies left: 98
 ```
 
 
+### `FlatMap` chains two state functions
+
+```scala
+def flatMap[B](g: A => State[S, B]): State[S, B]
+```
+
+```                                                    
+                     -----            -----         
+                     |   | ->  m1  -> |   | -> m2 
+               m0 -> | f |            | g |         
+                     |   | ->   a --> |   | -> b
+                     -----            -----         
+```
+Note: Show type signature
+
+
 ## `FlatMap`
 
 ```scala
@@ -406,17 +441,6 @@ class State[S, +A](f: S => (S, A)) {
 ```
 
 
-### `FlatMap` chains two state functions
-
-```                                                    
-                     -----            -----         
-                     |   | ->  m1  -> |   | -> m2 
-               m0 -> | f |            | g |         
-                     |   | ->   a --> |   | -> b
-                     -----            -----         
-```
-
-
 ## Using for comprehensions
 
 ```scala
@@ -426,7 +450,8 @@ val p2 = List[Input](Coin, Coin, Turn)
 ```
 
 ```scala
-val program = Machine.process(p1).flatMap(_ => Machine.process(p2))
+val program = Machine.process(p1)
+                     .flatMap(_ => Machine.process(p2))
 val (m, c) = program.run(initial)
 ```
 
@@ -438,6 +463,17 @@ val program = for {
 
 val (m, c) = program.run(initial)
 ```
+Note: Betere sequence bouwen.
+
+
+### Get and set
+
+
+### References
+
+
+
+
 
 ---
 
