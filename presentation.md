@@ -1,6 +1,17 @@
 # Functional state
 
 ## From mutable to immutable
+Note: or the title on JFall Site "Never change state and still get things done"
+State can be difficult. 
+Concurrent updates can lead to inconsistency, it can be difficult to scale and have you ever tried testing a component with a random element without having to resort to mocking? 
+Functional purity can help us here. 
+In this talk, we are going to investigate how we can design a pure functional structure that abstracts over state manipulations. 
+We will start with a solution that uses mutable state to solve a problem. 
+Then we will refactor step by step and eventually transform it to pure functional code that never changes state. 
+Familiarity with lambdas is assumed, but no knowledge of functional programming is required. 
+Code examples are in Scala, but no advanced language concepts are used, so knowledge of Java 8 is sufficient. 
+As an audience, I would get a comparative overview of solving a problem in a traditional way with imperative code and with pure functional structures. 
+I would also learn the benefits of purely functional state and its drawbacks.
 
 
 ## Outline
@@ -40,6 +51,13 @@
 - Side effects
 - Hard(er) to reason about 
 
+Note: 
+What are stating here about 'Shared mutable state'? Benefits, consequences ....
+Sharing is no fun: probable reference to childhood ;-)?
+Non-deterministic has to do with concurrent access and bugs caused by concurrency issues
+Side-effects(yeah, that basically is a consequence of having shared mutable state which is updated.)
+Harder to reason about, true 
+
 
 ### Try calling this function more than once...
 
@@ -53,6 +71,8 @@ def f(x: Int): Int = {
 ```
 
 `f(f(2)) == 4 + 4 + 4 != f(4)`
+
+Note: see end of presentation for illustrating it in a different way.
 
 
 ### `f(x) shouldBe f(x)`
@@ -100,6 +120,8 @@ But it also has more impact. For example on exceptions (try/catch semantics).
 
 Note: * Modular why? What are the benefits?
 And benefits of what??
+Looking at the red book (p. 79), they argue that 
+the lack of referential transparency implies that the code is not as testable, composable, modular and easily parallelized as it could be.
 
 --- 
 
@@ -218,7 +240,9 @@ object Machine {
 ```
 
 <aside class="notes">
-We have to introduce companion object here. Best explained for Java people as an object to hold your static methods. We need the methods out of Machine case class to prepare for type signature of State Monad.
+We have to introduce companion object here. 
+Best explained for Java people as an object to hold your static methods. 
+We need the methods out of Machine case class to prepare for type signature of State Monad.
 </aside>
 
 

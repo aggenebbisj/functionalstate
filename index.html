@@ -1,78 +1,143 @@
 <!doctype html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+    <title>reveal.js</title>
 
-		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css">
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
 
-		<!-- Theme used for syntax highlighting of code -->
-		<link rel="stylesheet" href="lib/css/zenburn.css">
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
 
-		<!-- Custom stylesheet -->
-		<link rel="stylesheet" href="css/my.css">
+    <!-- Custom stylesheet -->
+    <link rel="stylesheet" href="css/my.css">
 
-		<!-- Printing and PDF exports -->
-		<script>
-			var link = document.createElement( 'link' );
-			link.rel = 'stylesheet';
-			link.type = 'text/css';
-			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
-			document.getElementsByTagName( 'head' )[0].appendChild( link );
-		</script>
-	</head>
-	<body>
-		<div class="reveal">
-			<div class="slides">
-				<section data-markdown="presentation.md"  
-				         data-separator="^---"  
-				         data-separator-vertical="^\n\n"  
-				         data-separator-notes="^Note:"  
-				         data-charset="iso-8859-15"
-				         data-state="mybackground"
-				         data-background-image="img/stars.svg"
-				         data-background-position="top left"
-				         data-background-size="800px">
-				</section>
-				
-				<section data-background-image="img/the_coming_curse_by_mistabobby1.jpg">
-					<h2>Monadic Curse</h2>
-					<blockquote>
-						once someone learns what monads are
-						  and how to use them, <br />
-						they loose the ability <br />
-						  to explain it to other people.
-					</blockquote>
-					
-					
+    <!-- Printing and PDF exports -->
+    <script>
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+        document.getElementsByTagName('head')[0].appendChild(link);
+    </script>
+</head>
+<body>
+<div class="reveal">
+    <div class="slides">
+        <section data-markdown="presentation.md"
+                 data-separator="^---"
+                 data-separator-vertical="^\n\n"
+                 data-separator-notes="^Note:"
+                 data-charset="UTF8"
+                 data-state="mybackground"
+                 data-background-image="img/stars.svg"
+                 data-background-position="top left"
+                 data-background-size="800px">
+        </section>
 
-					<aside class="notes">
-						[Monads and Gonads - Douglas Crockford](https://www.youtube.com/watch?v=b0EF0VTs9Dc)
-						image from https://contemporaryshaman.files.wordpress.com/2013/11/the_coming_curse_by_mistabobby1.jpg
-					</aside>
-				</section>
-			</div>
-		</div>
 
-		<script src="lib/js/head.min.js"></script>
-		<script src="js/reveal.js"></script>
+        <section>
+            <section>The problem with Mutable State</section>
+            <section>
+                <pre><code class="scala" data-trim data-noescape>
+                            def f(x: Int): Int
+                                        
+                <span class="fragment">f(2) --> 3</span>
+                    
+                <span class="fragment">f(2) --> 3</span>
+                    
+                <span class="fragment">f(f(2)) --> 4</span>
+                    
+                <span class="fragment">f(f(f(2))) --> 5</span>
+                </code></pre>
+                
+                <aside class="notes">
+                    suppose I have a function like this (only the signature)
+                    just a very function with an easy signature that takes an Int and returns an Int
 
-		<script>
-			// More info https://github.com/hakimel/reveal.js#configuration
-			Reveal.initialize({
-				history: true,
+                     and I invoke it like below and get as a return 3
 
-				// More info https://github.com/hakimel/reveal.js#dependencies
-				dependencies: [
-					{ src: 'plugin/markdown/marked.js' },
-					{ src: 'plugin/markdown/markdown.js' },
-					{ src: 'plugin/notes/notes.js', async: true },
-					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
-				]
-			});
-		</script>
-	</body>
+                     what do I expect if I invoke it like twice: 4
+                     and of course reading Uncle Bob's clean code I would shout why not call the function addOne
+                     but we have our functional mindset now, so we keep the f.
+                     And yes the next function we will call g ;-)
+
+                     and we would go on f(f(f(2)))
+                     we can reason about it easily.
+                </aside>
+            </section>
+            <section>
+                <h3>Try calling this function more than once...</h3>
+                <pre><code class="scala" data-noescape>
+var y = 1
+
+def f(x: Int): Int = {
+    y = y + x
+    y
+}
+                <span class="fragment">f(2) --> 3</span>
+                    
+                <span class="fragment">f(2) --> 5</span>
+                    
+                <span class="fragment">f(f(2)) -->14</span>
+                    
+                <span class="fragment">f(f(f(2))) --> 64</span>
+                </code></pre>
+                <aside class="notes">
+                    This is confusing. The changing of global state is a side-effect which makes it a lot harder to reason about this piece of code.
+                </aside>
+            </section>
+        </section>
+
+        <section data-background-image="img/the_coming_curse_by_mistabobby1.jpg">
+            <h2>Monadic Curse</h2>
+            <blockquote>
+                once someone learns what monads are
+                and how to use them, <br/>
+                they loose the ability <br/>
+                to explain it to other people.
+
+            </blockquote>
+            <a href="https://www.youtube.com/watch?v=b0EF0VTs9Dc">Douglas Crockford</a>
+            <aside class="notes">
+                [Monads and Gonads - Douglas Crockford](https://www.youtube.com/watch?v=b0EF0VTs9Dc)
+                image from https://contemporaryshaman.files.wordpress.com/2013/11/the_coming_curse_by_mistabobby1.jpg
+            </aside>
+        </section>
+
+        <section data-background-image="img/candydispenser.jpg" data-background-size="auto 100%"  data-background-color="#ffffff">
+            <aside class="notes">
+                ...
+            </aside>
+
+        </section>
+
+    </div>
+</div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.js"></script>
+
+<script>
+    // More info https://github.com/hakimel/reveal.js#configuration
+    Reveal.initialize({
+        history: true,
+
+        // More info https://github.com/hakimel/reveal.js#dependencies
+        dependencies: [
+            {src: 'plugin/markdown/marked.js'},
+            {src: 'plugin/markdown/markdown.js'},
+            {src: 'plugin/notes/notes.js', async: true},
+            {
+                src: 'plugin/highlight/highlight.js', async: true, callback: function () {
+                hljs.initHighlightingOnLoad();
+            }
+            }
+        ]
+    });
+</script>
+</body>
 </html>
