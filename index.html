@@ -27,20 +27,137 @@
 <body>
 <div class="reveal">
     <div class="slides">
-        <section data-markdown="presentation.md"
-                 data-separator="^---"
-                 data-separator-vertical="^\n\n"
-                 data-separator-notes="^Note:"
-                 data-charset="UTF8"
-                 data-state="mybackground"
-                 data-background-image="img/stars.svg"
-                 data-background-position="top left"
-                 data-background-size="800px">
+        <section>
+            <h1>Never change state and still get things done</h1>
+            <aside class="notes">Abstract from JFall site
+                State can be difficult.
+                Concurrent updates can lead to inconsistency, it can be difficult to scale and have you ever tried
+                testing a component with a random element without having to resort to mocking?
+                Functional purity can help us here.
+                In this talk, we are going to investigate how we can design a pure functional structure that abstracts
+                over state manipulations.
+                We will start with a solution that uses mutable state to solve a problem.
+                Then we will refactor step by step and eventually transform it to pure functional code that never
+                changes state.
+                Familiarity with lambdas is assumed, but no knowledge of functional programming is required.
+                Code examples are in Scala, but no advanced language concepts are used, so knowledge of Java 8 is
+                sufficient.
+                As an audience, I would get a comparative overview of solving a problem in a traditional way with
+                imperative code and with pure functional structures.
+                I would also learn the benefits of purely functional state and its drawbacks.
+            </aside>
         </section>
 
+        <section>
+            <h2>Agenda</h2>
+
+            <ul>
+                <li>Traditional OO approach</li>
+                <li>Transitioning from mutable to immutable</li>
+                <li>Immutable with State data structure</li>
+
+            </ul>
+        </section>
+
+        <section data-background-image="/img/candydispenser.jpg"
+                 data-background-size="auto 100%"
+                 data-background-color="#ffffff">
+            <aside class="notes">
+                A vending machine from which you can buy candies.
+                - The vending machine can process two types of inputs from customers.
+                1. They can insert money
+                2. They can turn the knob to get the candy after they inserted the money.
+                - The machine can be refilled with a new stock of candies.
+                - The returns of the machine can be collected, all coins will be extracted.
+            </aside>
+        </section>
 
         <section>
-            <section>The problem with Mutable State</section>
+            <section>
+                <h2>The traditional OO approach</h2>
+                <img src="/img/object-oriented-software-construction.jpg"/>
+                <aside class="notes">
+                    who knows this classic writing?
+                    First edition written in 1988 by Bertrand Meyer, the second edition at a whopping 1200 pages
+                    appeared in 1997
+                    "Meyer pursues the ideal of simple, elegant and user-friendly computer languages and
+                    is one of the earliest and most vocal proponents of object-oriented programming (OOP).
+                    His book Object-Oriented Software Construction is widely considered to be the best work on
+                    presenting the case for OOP."
+                    https://en.wikipedia.org/wiki/Bertrand_Meyer
+                </aside>
+            </section>
+
+            <section>
+                <h3>A first attempt</h3>
+                <pre><code class="scala" data-trim data-noescape>
+sealed trait Input
+case object Coin extends Input
+case object Turn extends Input
+
+class Machine(private var _candies: Int,
+  private var _coins: Int) {
+
+  // 'Commands' modify machine
+  def process(inputs: List[Input]): Int
+
+  // 'Queries' return information about machine
+  def candies = _candies
+  def coins = _coins
+}
+                </code></pre>
+                <aside class="notes">
+                    TODO kan command nog? Het returnt geen Unit meer nu.
+                    Meyer p. 748 "The features that characterize a class are divided into commands and queries.
+                    A command serves to modify objects, a query to return information about objects."
+                    p. 749 A function (defined as routine that returns a result) produces a concrete side effect if its
+                    body contains any of the following
+                    * an assignment, assignment attempt or creation instruction whose target is an attribute * a
+                    procedure call
+                    On p. 751 he formulates the 'Command-Query separation principle' as "Functions should not produce
+                    abstract side effects"
+                    TODO: List verwijderen.
+                </aside>
+            </section>
+
+            <section>
+                <h2>Taking it for a spin</h2>
+
+                <pre><code class="scala" data-trim data-noescape>
+val machine = new Machine(_candies = 5, _coins = 10)
+
+machine.process(List(Coin, Turn))
+
+machine.coins shouldBe 11
+machine.candies shouldBe 4
+                </code></pre>
+            </section>
+        </section>
+
+        <section>
+            <section>
+                <h2>Problems with the traditional approach</h2>
+                <aside class="notes">
+                    it has served us well, but in modern times there are some problems and an alternative.
+                </aside>
+            </section>
+
+            <section>
+                <h3>Sharing is no fun</h3>
+                <aside class="notes">
+                    benoemen problemen rond concurrency met shared mutable state,
+                    iets wat in de tijd van het boeknminder speelde. telefoons quad-core.
+                </aside>
+            </section>
+
+            <section data-background-image="/img/ache-1297598.svg">
+                <h3>It makes your head hurt !!</h3>
+                <aside class="notes">Note: With a nice picture of course
+                    maar WTF is nu het probleem met alleen mutable state
+                    From https://pixabay.com/nl/ache-hoofd-menselijke-mannelijke-1297598/
+                </aside>
+            </section>
+
             <section>
                 <pre><code class="scala" data-trim data-noescape>
                             def f(x: Int): Int
@@ -53,20 +170,20 @@
                     
                 <span class="fragment">f(f(f(2))) --> 5</span>
                 </code></pre>
-                
+
                 <aside class="notes">
                     suppose I have a function like this (only the signature)
                     just a very function with an easy signature that takes an Int and returns an Int
 
-                     and I invoke it like below and get as a return 3
+                    and I invoke it like below and get as a return 3
 
-                     what do I expect if I invoke it like twice: 4
-                     and of course reading Uncle Bob's clean code I would shout why not call the function addOne
-                     but we have our functional mindset now, so we keep the f.
-                     And yes the next function we will call g ;-)
+                    what do I expect if I invoke it like twice: 4
+                    and of course reading Uncle Bob's clean code I would shout why not call the function addOne
+                    but we have our functional mindset now, so we keep the f.
+                    And yes the next function we will call g ;-)
 
-                     and we would go on f(f(f(2)))
-                     we can reason about it easily.
+                    and we would go on f(f(f(2)))
+                    we can reason about it easily.
                 </aside>
             </section>
             <section>
@@ -77,8 +194,7 @@ var y = 1
 def f(x: Int): Int = {
     y = y + x
     y
-}
-                <span class="fragment">f(2) --> 3</span>
+}               <span class="fragment">f(2) --> 3</span>
                     
                 <span class="fragment">f(2) --> 5</span>
                     
@@ -87,10 +203,296 @@ def f(x: Int): Int = {
                 <span class="fragment">f(f(f(2))) --> 64</span>
                 </code></pre>
                 <aside class="notes">
-                    This is confusing. The changing of global state is a side-effect which makes it a lot harder to reason about this piece of code.
+                    This is confusing. The changing of global state is a side-effect which makes it a lot harder to
+                    reason about this piece of code.
                 </aside>
             </section>
         </section>
+
+        <section>
+            <section>
+                <h2>Taking a more functional approach</h2>
+                <aside class="notes">
+                    Note: door hardware ontwikkelingen is FP sinds een aantal jaren een haalbare kaart.
+                    Een van de belangrijkste pillars of FP is referential transparency.
+                </aside>
+            </section>
+
+            <section>
+                <h3>Referential transparency</h3>
+                <blockquote>
+                    An expression is said to be <br/>
+                    referentially transparent<br/>
+                    if it can be <strong>replaced</strong><br/>
+                    with its corresponding value<br/>
+                    <strong>without changing</strong> the program's behavior
+                </blockquote>
+
+                <aside class="notes">
+                    Calling a function with the same arguments will return the same result every time.
+
+                    This means that you have no assignments that change the global change.
+                    This is why immutability is so important.
+
+                    But it also has more impact. For example on exceptions (try/catch semantics).
+                </aside>
+            </section>
+            <section>
+                <h3>Benefits of Referential Transparency</h3>
+
+                <ul>
+                    <li>Easier to reason about</li>
+                    <li>Testable</li>
+                    <li>Composable</li>
+                    <li>Parallellizable</li>
+                </ul>
+                <aside class="notes">
+                    Note: * Modular why? What are the benefits?
+                    Looking at the red book (p. 79), they argue that
+                    the lack of referential transparency implies that the code is not as testable, composable, modular
+                    and easily parallelized as it could be.
+                </aside>
+            </section>
+
+        </section>
+
+        <section>
+            <section>
+                <h2>Introducing immutability</h2>
+                <aside class="notes">
+                    Note: catchy title ;-)
+                </aside>
+            </section>
+
+            <section>
+                <h3>Remember?</h3>
+                <pre><code class="scala" data-noescape>            
+                    sealed trait Input
+            case object Coin extends Input
+            case object Turn extends Input
+
+            class Machine(private var _candies: Int,
+            private var _coins: Int) {
+
+            // 'Commands' modify machine
+            def process(inputs: List[Input]): Int
+
+            // 'Queries' return information about machine
+            def candies = _candies
+            def coins = _coins
+            }
+            </code></pre>
+            </section>
+
+            <section>
+                <h3>Copy on write</h3>
+                <pre><code class="scala" data-noescape>            
+            sealed trait Input
+            case object Coin extends Input
+            case object Turn extends Input
+
+            case class Machine(candies: Int, coins: Int)
+
+            object Machine {
+            def process(inputs: List[Input], machine: Machine): (Machine, Int)
+            }
+            </code></pre>
+
+                <aside class="notes">
+                    We have to introduce companion object here.
+                    Best explained for Java people as an object to hold your static methods.
+                    We need the methods out of Machine case class to prepare for type signature of State Monad.
+                    TODO: List verwijderen.
+                </aside>
+            </section>
+
+
+            <section>
+                <h3>Do you spot the bug</h3>
+                <pre><code class="scala" data-noescape>        
+                            val m = Machine(candies = 100, coins = 0)
+            val p1 = List[Input](Coin, Turn, Coin, Coin, Turn)
+            val (m2, c) = Machine.process(p1, m)
+            val p2 = List[Input](Coin, Coin, Turn)
+            val (m3, c2) = Machine.process(p2, m)
+            </code></pre>
+            </section>
+
+            <section>
+                <h3>Pros</h3>
+                <ul>
+                    <li>Simple</li>
+                    <li>Immutable</li>
+                </ul>
+
+                <br/>
+                <h3>Cons</h3>
+                <ul>
+                    <li>Error prone</li>
+                </ul>
+                <aside class="notes">
+                    Note: manual wiring of state through all the calls is error-prone
+                </aside>
+            </section>
+        </section>
+
+        <section>
+            <section>
+                <h2>Functional State</h2>
+                <aside class="notes">
+                    Volgorde:
+                    - turn method signature
+                    - Machine => Machine, Int
+                    - S => S,A
+                    - Wrap it in a class and refactor.
+                    - insertCoin naar analogie van turn veranderen met 2 parameter lijsten (currying)
+                    - er mist iets, eigenlijk welk maar in dit geval is a Unit.
+                </aside>
+            </section>
+
+
+            <section>
+                <h3>Let's look at the type signature</h3>
+
+                <pre><code class="scala" data-noescape>        
+            `def process(inputs: List[Input], machine: Machine): (Machine, Int)`
+
+            ===
+
+            `def process(inputs: List[Input])(machine: Machine): (Machine, Int)`
+                </code></pre>
+            </section>
+
+            <section>
+                <h3>Machine => (Machine, Int)</h3>
+            </section>
+
+            <section>
+                <h3>S => (S, A)</h3>
+                <aside class="notes">
+                    `S1 => (S2, A)`
+                </aside>
+            </section>
+
+            <section>
+                <h3>Let's wrap this in a class</h3>
+
+                <pre><code class="scala" data-noescape>      
+            class State[S, +A](f: S => (S, A)) {
+            def run(initial: S): (S, A) = f(initial)
+            }
+            </code></pre>
+                <aside class="notes">
+                    Without combinators the class does not do much of course.
+                    We need the class because unlike JavaScript we cannot add methods to functions.
+                </aside>
+            </section>
+
+            <section>
+                <h3>Doing the mechanical refactoring</h3>
+
+                <pre><code class="scala" data-noescape>      
+            def process(inputs: List[Input])(machine: Machine): (Machine, Int) = {
+            ...
+            }
+            
+
+            becomes
+
+            ```scala
+            def process(inputs: List[Input]): new State[Machine, Int](machine =>
+            ...
+            )
+            </code></pre>
+            </section>
+
+        </section>
+
+
+        <section>
+            <section>
+                <h2>Combinators</h2>
+                <blockquote>"A combinator is a higher-order function <br/>
+                    that uses only function application and<br/>
+                    earlier defined combinators<br/>
+                    to define a result from its arguments."
+                </blockquote>
+                <aside class="notes">
+                    Note: from https://en.wikipedia.org/wiki/Combinatory_logic
+                </aside>
+            </section>
+
+            <section>
+                <h3>map</h3>
+                <pre><code class="scala" data-noescape>
+def map[B](transform: A => B): State[S, B] =
+  new State[S, B](s0 => {
+    val (s1, a) = run(s0)
+    (s1, transform(a))
+  })
+                </code></pre>
+                <aside class="notes">
+                    Voor deze slide plaatje met werking van map.
+                </aside>
+            </section>
+
+            <section>
+                <h3>FlatMap chains two state functions</h3>
+                <pre><code class="scala" data-noescape>
+def flatMap[B](g: A => State[S, B]): State[S, B]
+
+                     -----            -----         
+                     |   | ->  m1  -> |   | -> m2 
+               m0 -> | f |            | g |         
+                     |   | ->   a --> |   | -> b
+                     -----            -----         
+                </code></pre>
+                <aside class="notes">
+                    Note: Show type signature
+                </aside>
+            </section>
+            <section>
+                <h3>flatMap</h3>
+                <pre><code class="scala" data-noescape>
+def flatMap[B](g: A => State[S, B]): State[S, B] =
+  new State(s0 => {
+    val (s1, a) = run(s0)
+    g(a).run(s1)
+  })
+                </code></pre>
+            </section>
+
+            <section>
+                <h3>Using for comprehensions</h3>
+            </section>
+
+            <section>
+                <h3>Get and set</h3>
+            </section>
+
+        </section>
+
+        <section>
+            <h3>References</h3>
+            <ul>
+                <li><a href="https://www.manning.com/books/functional-programming-in-scala">Functional Programming in
+                    Scala</a></li>
+                <li><a href="https://www.youtube.com/watch?v=Jg3Uv_YWJqI)">Michael Pilquist - Scalaz State Monad</a>
+                </li>
+            </ul>
+        </section>
+
+        <section data-markdown="presentation.md"
+                 data-separator="^---"
+                 data-separator-vertical="^\n\n"
+                 data-separator-notes="^Note:"
+                 data-charset="UTF8"
+                 data-state="mybackground"
+                 data-background-image="img/stars.svg"
+                 data-background-position="top left"
+                 data-background-size="800px">
+        </section>
+
 
         <section data-background-image="img/the_coming_curse_by_mistabobby1.jpg">
             <h2>Monadic Curse</h2>
@@ -104,17 +506,10 @@ def f(x: Int): Int = {
             <a href="https://www.youtube.com/watch?v=b0EF0VTs9Dc">Douglas Crockford</a>
             <aside class="notes">
                 [Monads and Gonads - Douglas Crockford](https://www.youtube.com/watch?v=b0EF0VTs9Dc)
-                image from https://contemporaryshaman.files.wordpress.com/2013/11/the_coming_curse_by_mistabobby1.jpg
+                image from
+                https://contemporaryshaman.files.wordpress.com/2013/11/the_coming_curse_by_mistabobby1.jpg
             </aside>
         </section>
-
-        <section data-background-image="img/candydispenser.jpg" data-background-size="auto 100%"  data-background-color="#ffffff">
-            <aside class="notes">
-                ...
-            </aside>
-
-        </section>
-
     </div>
 </div>
 
