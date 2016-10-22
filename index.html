@@ -59,17 +59,37 @@
             </ul>
         </section>
 
-        <section data-background-image="/img/candydispenser.jpg"
-                 data-background-size="auto 100%"
-                 data-background-color="#ffffff">
-            <aside class="notes">
-                A vending machine from which you can buy candies.
-                - The vending machine can process two types of inputs from customers.
-                1. They can insert money
-                2. They can turn the knob to get the candy after they inserted the money.
-                - The machine can be refilled with a new stock of candies.
-                - The returns of the machine can be collected, all coins will be extracted.
-            </aside>
+        <section>
+            <section><h2>The domain</h2></section>
+
+            <section data-background-image="/img/candydispenser.jpg"
+                     data-background-size="auto 100%"
+                     data-background-color="#ffffff">
+                <aside class="notes">
+                    A vending machine from which you can buy candies.
+                    - The vending machine can process two types of inputs from customers.
+                    1. They can insert money
+                    2. They can turn the knob to get the candy after they inserted the money.
+                    - The machine can be refilled with a new stock of candies.
+                    - The returns of the machine can be collected, all coins will be extracted.
+                </aside>
+            </section>
+
+
+            <section>
+                <h3>The code</h3>
+                <pre><code class="scala" data-trim data-noescape>
+sealed trait Coin
+case object Coin extends Coin
+
+case class Candy(color: String)
+                    
+val candies: List[Candy] = ...
+                    </code></pre>
+                <aside class="notes">
+                    We have a simple economy with just one type of coins, just like a festival.
+                </aside>
+            </section>
         </section>
 
         <section>
@@ -87,27 +107,28 @@
                     https://en.wikipedia.org/wiki/Bertrand_Meyer
                 </aside>
             </section>
-
             <section>
-                <h3>A first attempt</h3>
+                <h3>A first attempt command query separation</h3>
                 <pre><code class="scala" data-trim data-noescape>
-sealed trait Input
-case object Coin extends Input
-case object Turn extends Input
-
-class Machine(private var _candies: Int,
-  private var _coins: Int) {
+class Machine(private val candies: ListBuffer[Candy],
+              private var _coins: Int) {
+  private var _lastCandy:Candy = _
 
   // 'Commands' modify machine
-  def process(inputs: List[Input]): Int
+  def insertCoin(coin: Coin): Unit = _coins = _coins + 1
+  def turn(): Unit = { _lastCandy = candies.remove(0) }
 
   // 'Queries' return information about machine
-  def candies = _candies
+  def lastCandy = _lastCandy
   def coins = _coins
 }
                 </code></pre>
                 <aside class="notes">
-                    TODO kan command nog? Het returnt geen Unit meer nu.
+                    A ListBuffer is a mutable data structure.
+                    Due to command-query separation turn only changes the list of candies and the last candy that was
+                    returned.
+                    The _(underscore) is necessary to keep the mutable state private.
+
                     Meyer p. 748 "The features that characterize a class are divided into commands and queries.
                     A command serves to modify objects, a query to return information about objects."
                     p. 749 A function (defined as routine that returns a result) produces a concrete side effect if its
@@ -116,23 +137,53 @@ class Machine(private var _candies: Int,
                     procedure call
                     On p. 751 he formulates the 'Command-Query separation principle' as "Functions should not produce
                     abstract side effects"
-                    TODO: List verwijderen.
+
+                    MB: aan de ene kant spreekt dit me wel aan vanwege de Command-Query separation, en dat queries geen
+                    side effects zouden mogen hebben
+                    aan de andere kant is de volgende slide de meest gebruikte moderne oplossing
                 </aside>
             </section>
 
             <section>
-                <h2>Taking it for a spin</h2>
+                <h3>A more modern attempt</h3>
+                <pre><code class="scala" data-trim data-noescape>
+class Machine(private val candies: ListBuffer[Candy],
+              private var _coins: Int) {
+  
+  def insertCoin(coin: Coin): Unit = _coins = _coins + 1
+  def turn(): Candy = candies.remove(0)
+
+  def remainingCandies = candies.size
+  def coins = _coins
+}
+                </code></pre>
+                <aside class="notes">
+                    Here the change is that the turn-method return the Candy that falls from the dispenser immediately.
+                    The 'command' changes the state and returns information (the dispensed candy)
+                </aside>
+            </section>
+
+
+            <section>
+                <h3>Taking it for a spin</h3>
 
                 <pre><code class="scala" data-trim data-noescape>
-val machine = new Machine(_candies = 5, _coins = 10)
+val machine = new Machine(mutCandies, 0)
 
-machine.process(List(Coin, Turn))
+machine.insertCoin(Coin)
+val candy: Candy = machine.turn()
 
-machine.coins shouldBe 11
-machine.candies shouldBe 4
+candy shouldBe Candy("Blue")
+machine.coins shouldBe 1
+machine.remainingCandies shouldBe 7
                 </code></pre>
+                <aside class="notes">
+                    mutCandies is a mutable list of candies.
+                </aside>
             </section>
+
         </section>
+
 
         <section>
             <section>
@@ -153,7 +204,10 @@ machine.candies shouldBe 4
             <section data-background-image="/img/ache-1297598.svg">
                 <h3>It makes your head hurt !!</h3>
                 <aside class="notes">Note: With a nice picture of course
-                    maar WTF is nu het probleem met alleen mutable state
+                    But, WTF is the problem with the mutable state. It looks completely logical and sound to me.
+                    That is, because we are used to the object-oriented way of modelling and looking at things.
+                    And no, it is not bad, but there are alternatives that can make easier.
+                    So why does it makes your head hurt?
                     From https://pixabay.com/nl/ache-hoofd-menselijke-mannelijke-1297598/
                 </aside>
             </section>
@@ -175,7 +229,7 @@ machine.candies shouldBe 4
                     suppose I have a function like this (only the signature)
                     just a very function with an easy signature that takes an Int and returns an Int
 
-                    and I invoke it like below and get as a return 3
+                    and I invoke it like below and get as a return 3, and I do the same thing again .... 3
 
                     what do I expect if I invoke it like twice: 4
                     and of course reading Uncle Bob's clean code I would shout why not call the function addOne
@@ -204,7 +258,10 @@ def f(x: Int): Int = {
                 </code></pre>
                 <aside class="notes">
                     This is confusing. The changing of global state is a side-effect which makes it a lot harder to
-                    reason about this piece of code.
+                    reason about this piece of code. And to calculate the right value you have to know the history of
+                    changes.
+                    And it doesn't always have to be variables that are global, this also occurs when the scope of the
+                    variable is greater than the function it is used in.
                 </aside>
             </section>
         </section>
@@ -267,55 +324,57 @@ def f(x: Int): Int = {
             <section>
                 <h3>Remember?</h3>
                 <pre><code class="scala" data-noescape>            
-                    sealed trait Input
-            case object Coin extends Input
-            case object Turn extends Input
+class Machine(private val candies: ListBuffer[Candy],
+              private var _coins: Int) {
+  
+  def insertCoin(coin: Coin): Unit = _coins = _coins + 1
+  def turn(): Candy = candies.remove(0)
 
-            class Machine(private var _candies: Int,
-            private var _coins: Int) {
-
-            // 'Commands' modify machine
-            def process(inputs: List[Input]): Int
-
-            // 'Queries' return information about machine
-            def candies = _candies
-            def coins = _coins
-            }
+  def remainingCandies = candies.size
+  def coins = _coins
+}
             </code></pre>
             </section>
 
             <section>
                 <h3>Copy on write</h3>
-                <pre><code class="scala" data-noescape>            
-            sealed trait Input
-            case object Coin extends Input
-            case object Turn extends Input
+                <pre><code class="scala" data-noescape>
+case class Machine(candies: List[Candy], coins: Int)
 
-            case class Machine(candies: Int, coins: Int)
+  
+object Machine {
+  
+  def turn(m: Machine): (Machine, Candy) = 
+    (m.copy(candies = m.candies.tail), m.candies.head)
 
-            object Machine {
-            def process(inputs: List[Input], machine: Machine): (Machine, Int)
-            }
+  def insertCoin(coin: Coin, m: Machine): (Machine) =
+    m.copy(coins = m.coins + 1)
+}
             </code></pre>
-
                 <aside class="notes">
-                    We have to introduce companion object here.
+                    We have to introduce companion object and case class (with copy, public val attributes) here.
                     Best explained for Java people as an object to hold your static methods.
                     We need the methods out of Machine case class to prepare for type signature of State Monad.
-                    TODO: List verwijderen.
                 </aside>
             </section>
 
-
             <section>
-                <h3>Do you spot the bug</h3>
+                <h3>Immutable drive</h3>
                 <pre><code class="scala" data-noescape>        
-                            val m = Machine(candies = 100, coins = 0)
-            val p1 = List[Input](Coin, Turn, Coin, Coin, Turn)
-            val (m2, c) = Machine.process(p1, m)
-            val p2 = List[Input](Coin, Coin, Turn)
-            val (m3, c2) = Machine.process(p2, m)
+val m0 = Machine(candies, 0)
+
+val m1:Machine   = Machine.insertCoin(Coin, m0)
+val (m2, candy0) = Machine.turn(m1)
+
+val m3           = Machine.insertCoin(Coin, m2)
+val (m4, candy1) = Machine.turn(m1)
+
+m4.candies.size shouldBe 6
             </code></pre>
+                <aside class="notes">
+                    Everything is now immutable, but wiring the state through all the function calls is tedious.
+                    And error prone: Do you spot the bug?
+                </aside>
             </section>
 
             <section>
@@ -354,23 +413,21 @@ def f(x: Int): Int = {
             <section>
                 <h3>Let's look at the type signature</h3>
 
-                <pre><code class="scala" data-noescape>        
-            `def process(inputs: List[Input], machine: Machine): (Machine, Int)`
-
-            ===
-
-            `def process(inputs: List[Input])(machine: Machine): (Machine, Int)`
+                <pre><code class="scala" data-noescape>
+                    def turn(m: Machine): (Machine, Candy)
                 </code></pre>
             </section>
 
             <section>
-                <h3>Machine => (Machine, Int)</h3>
+                <h3>Machine => (Machine, Candy)</h3>
             </section>
 
             <section>
-                <h3>S => (S, A)</h3>
+                <h3>S => (S<span class="fragment">'</span>, A)</h3>
                 <aside class="notes">
-                    `S1 => (S2, A)`
+                    Or more abstract, we got a function that takes something that represents the State with an output
+                    of a tuple of a new State and a value.
+                    This is going to be are basic abstract, a function from a State to a new State and a value.
                 </aside>
             </section>
 
@@ -379,33 +436,79 @@ def f(x: Int): Int = {
 
                 <pre><code class="scala" data-noescape>      
             class State[S, +A](f: S => (S, A)) {
-            def run(initial: S): (S, A) = f(initial)
+                    
+              def run(initial: S): (S, A) = f(initial)
+                    
             }
             </code></pre>
                 <aside class="notes">
+                    So we have a class State with two Type parameters S and A for the State and the value.
+                    The constructor of the class does not take a regular value, but it takes that function
+                    from a State to a new State and value.
+
+                    Creating the State does not do anything useful yet.
+                    Run will just apply that function and thus return a tuple of a new state and a value.
+
                     Without combinators the class does not do much of course.
                     We need the class because unlike JavaScript we cannot add methods to functions.
                 </aside>
             </section>
 
             <section>
-                <h3>Doing the mechanical refactoring</h3>
-
+                <h3>Refactor the current turn method</h3>
                 <pre><code class="scala" data-noescape>      
-            def process(inputs: List[Input])(machine: Machine): (Machine, Int) = {
-            ...
-            }
-            
+case class Machine(coins: Int, candies: List[Candy])
 
-            becomes
+object Machine {
+  def turn(): State[Machine, Candy] =
+   <span class="fragment fade-out">new </span>State(m => (m.copy(candies = m.candies.tail), m.candies.head) )
+  <span class="fragment">def apply[S,A](f: S => (S,A)) = new State(f)</span>
+<span class="fragment">
+// Go, go, go ...
+val m = Machine(0, candies)
 
-            ```scala
-            def process(inputs: List[Input]): new State[Machine, Int](machine =>
-            ...
-            )
-            </code></pre>
+val t: State[Machine, Candy] = Machine.turn()
+val (m1, candy) = t run m
+
+candy shouldBe Candy("Blue")
+</span>
+                    
+                    </code></pre>
+                <aside class="notes">
+                    If we add an apply function we can even remove the 'new'
+                    And again, calling Machine.turn() does not do anything. It just defines a function that will
+                    do something WHEN it is applied with a machine.
+                    This is shown below, when the run method is called with a machine, then the result is calculated.
+                </aside>
             </section>
 
+            <section>
+                <h3>Ok, but what about inserting a Coin?</h3>
+                <pre><code class="scala" data-noescape>
+object Machine {
+  def insertCoin(coin: Coin<span class="fragment" data-fragment-index="2">)</span><span class="fragment fade-out" data-fragment-index="2">,</span><span class="fragment" data-fragment-index="2">(</span>m: Machine): <span class="fragment" data-fragment-index="1">(</span>Machine<span class="fragment" data-fragment-index="1">, Unit)</span> = 
+                 </code></pre>
+                <aside class="notes">
+                    This does not look like a function S => (S,A),
+                    but looking at it more abstractly: the return value from insertCoin is nothing or Unit.
+                    And if we are going to use currying of the parameters, we get two parameter lists, with one
+                    that is equal to the State datatype we created.
+                    So, here we can also refactor it to use the State data type we created.
+                </aside>
+            </section>
+
+            <section>
+                <h3>Doing the mechanical refactoring</h3>
+                <pre><code class="scala" data-noescape>
+object Machine {
+  def insertCoin(coin: Coin): State[Machine, Unit] =
+    State(m => (m.copy(coins = m.coins + 1), ()))
+                 </code></pre>
+                <aside class="notes">
+                    So inserting a coin returns basically a datatype holding a function that will take a machine as a parameter
+                    and return a new machine with increased number of coins and no concrete value to return.
+                </aside>
+            </section>
         </section>
 
 
