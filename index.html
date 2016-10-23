@@ -485,7 +485,11 @@ candy shouldBe Candy("Blue")
                 <h3>Ok, but what about inserting a Coin?</h3>
                 <pre><code class="scala" data-noescape>
 object Machine {
-  def insertCoin(coin: Coin<span class="fragment" data-fragment-index="2">)</span><span class="fragment fade-out" data-fragment-index="2">,</span><span class="fragment" data-fragment-index="2">(</span>m: Machine): <span class="fragment" data-fragment-index="1">(</span>Machine<span class="fragment" data-fragment-index="1">, Unit)</span> = 
+  def insertCoin(coin: Coin<span class="fragment" data-fragment-index="2">)</span><span class="fragment fade-out"
+                                                                                        data-fragment-index="2">,</span><span
+                        class="fragment" data-fragment-index="2">(</span>m: Machine): <span class="fragment"
+                                                                                            data-fragment-index="1">(</span>Machine<span
+                        class="fragment" data-fragment-index="1">, Unit)</span> = 
                  </code></pre>
                 <aside class="notes">
                     This does not look like a function S => (S,A),
@@ -504,7 +508,8 @@ object Machine {
     State(m => (m.copy(coins = m.coins + 1), ()))
                  </code></pre>
                 <aside class="notes">
-                    So inserting a coin returns basically a datatype holding a function that will take a machine as a parameter
+                    So inserting a coin returns basically a datatype holding a function that will take a machine as a
+                    parameter
                     and return a new machine with increased number of coins and no concrete value to return.
                 </aside>
             </section>
@@ -547,8 +552,10 @@ class State[S, +A](f: S => (S, A)) {
                     Ok, now it's getting interesting. What if we want to combine and transform the value.
                     What if we, when running the state function would like to transform the resulting value.
                     Just like with a List we can do that with the map function.
-                    How does it look like graphically? We have a machine that we give to the run-function of the State (which basically applies f to s0).
-                    The run function delivers a new State (machine) and a value 'a'. The value a is transformed by the map-function to a b.
+                    How does it look like graphically? We have a machine that we give to the run-function of the State
+                    (which basically applies f to s0).
+                    The run function delivers a new State (machine) and a value 'a'. The value a is transformed by the
+                    map-function to a b.
                 </aside>
             </section>
             <section>
@@ -563,7 +570,8 @@ val (m1, color) = program.run(m0)
 color shouldBe "Blue"
                 </code></pre>
                 <aside class="notes">
-                    So we have now a new function that combines the turn function with a function that transforms the resulting output.
+                    So we have now a new function that combines the turn function with a function that transforms the
+                    resulting output.
                     And we can write this more succintly as the Scala compiler can infers most types.
                 </aside>
             </section>
@@ -601,12 +609,14 @@ class State[S, +A](f: S => (S, A)) {
                 </code></pre>
                 <aside class="notes">
                     Ok, now looking at flatMap.
-                    So the state function takes a state (think machine) and the resulting output of running is a modified state and an a.
+                    So the state function takes a state (think machine) and the resulting output of running is a
+                    modified state and an a.
                     The function g takes an a and returns a State[S,B]. But a State is just a function from S => (S,A).
-                    So in the end we first have to feed the function g an 'a', so we get a new State function. 
-                    And then 'run' the State function by providing the new State 's' that was the result of running the f-function.
+                    So in the end we first have to feed the function g an 'a', so we get a new State function.
+                    And then 'run' the State function by providing the new State 's' that was the result of running the
+                    f-function.
                     This gives us the return value: a tuple of (S,B).
-                    
+
                     Implementing this now, is a piece of cake (a big piece, that is ;-))
                 </aside>
             </section>
@@ -626,7 +636,8 @@ candy shouldBe Candy("Blue")
                     Remember we get a State[Machine, Unit) as a result. And then we want to turn the machine.
                     As we are not interested in the resulting value of insertCoin (Unit) we disregard the parameter.
                     The State (or the Machine) will be used in the flatMap function.
-                    In the end the resulting return type of turn is the State[Machine,Candy], so we the last validation is successfull.
+                    In the end the resulting return type of turn is the State[Machine,Candy], so we the last validation
+                    is successfull.
                 </aside>
             </section>
             <section>
@@ -644,8 +655,8 @@ candy shouldBe Candy("Red")
                 <aside class="notes">
                 </aside>
             </section>
-            
-            
+
+
             <section>
                 <h3>Using for comprehensions</h3>
                 <pre><code class="scala" data-noescape>
@@ -674,10 +685,14 @@ candy shouldBe Candy("Red")
         <section>
             <h3>References</h3>
             <ul>
+                <li><a href="https://github.com/aggenebbisj/functionalstate">Presentation</a> </li>
                 <li><a href="https://www.manning.com/books/functional-programming-in-scala">Functional Programming in
                     Scala</a></li>
                 <li><a href="https://www.youtube.com/watch?v=Jg3Uv_YWJqI)">Michael Pilquist - Scalaz State Monad</a>
                 </li>
+                <li><a href="https://www.youtube.com/watch?v=XxzzJiXHOJs](https://www.youtube.com/watch?v=XxzzJiXHOJs">Brian
+                    Beckman: The Zen of Stateless State - The State Monad</a></li>
+                
             </ul>
         </section>
 
