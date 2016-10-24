@@ -166,7 +166,7 @@ class Machine(private val candies: ListBuffer[Candy],
 
             <section>
                 <h3>Taking it for a spin</h3>
-
+                <!-- TODO waar is mutcandies? -->
                 <pre><code class="scala" data-trim data-noescape>
 val machine = new Machine(mutCandies, 0)
 
@@ -676,9 +676,61 @@ candy shouldBe Candy("Red")
                 </aside>
             </section>
             <section>
-                <h3>Get and set</h3>
+                <h3>FP with Getters and Setters</h3>
+                <aside class="notes">
+                    That for code already looks more imperative. But can we make it even more imperative?
+                    Yes! Welcome our old friends getter and setter!
+                </aside>
+            </section>
+            <section>
+                <h3>Now what if we just want to get the state?</h3>
+                <pre><code class="scala" data-noescape>
+object State {
+  ...  
+  def get[S]: State[S, S] = new State(s => (s, s))
+  ...
+}
+                </code></pre>      
+            </section>
+            <section>
+                <h3>And with get comes set</h3>
+                <pre><code class="scala" data-noescape>
+object State {
+  ...  
+  def set[S](newS: S): State[S, Unit] = new State(_ => (newS, ()))
+  ...
+}
+                </code></pre>      
+            </section>
+            <section>
+                <h3>Doing the refactoring</h3>
+                <pre><code class="scala" data-noescape>
+def insertCoin(coin: Coin): State[Machine, Unit] =
+    State(m => (m.copy(coins = m.coins + 1), ()))
+                </code></pre>
+                <pre><code class="scala" data-noescape>
+def insertCoin(coin: Coin): State[Machine, Unit] = for {
+  m <- State.get[Machine]
+  _ <- State.set(m.copy(coins = m.coins + 1))
+} yield ()
+                </code></pre>
             </section>
 
+            <section>
+                <h3>Get and Set == Modify</h3>
+                <pre><code class="scala" data-noescape>
+object State {
+  ...  
+  def modify[S](f: S => S): State[S, Unit] = new State(s => (f(s), ()))
+  ...
+}
+                </code></pre>
+                <pre><code class="scala" data-noescape>
+def insertCoin(coin: Coin): State[Machine, Unit] = for {
+  _ <- State.modify(m.copy(coins = m.coins + 1))
+} yield ()
+                </code></pre>
+            </section>
 
         </section>
 
