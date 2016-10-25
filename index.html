@@ -166,9 +166,8 @@ class Machine(private val candies: ListBuffer[Candy],
 
             <section>
                 <h3>Taking it for a spin</h3>
-                <!-- TODO waar is mutcandies? -->
                 <pre><code class="scala" data-trim data-noescape>
-val machine = new Machine(mutCandies, 0)
+val machine = new Machine(candies, 0)
 
 machine.insertCoin(Coin)
 val candy: Candy = machine.turn()
@@ -367,7 +366,7 @@ val m1:Machine   = Machine.insertCoin(Coin, m0)
 val (m2, candy0) = Machine.turn(m1)
 
 val m3           = Machine.insertCoin(Coin, m2)
-val (m4, candy1) = Machine.turn(m1)
+val (m4, candy1) = Machine.turn(<span class="fragment highlight-red">m1</span>)
 
 m4.candies.size shouldBe 6
             </code></pre>
@@ -399,13 +398,6 @@ m4.candies.size shouldBe 6
             <section>
                 <h2>Functional State</h2>
                 <aside class="notes">
-                    Volgorde:
-                    - turn method signature
-                    - Machine => Machine, Int
-                    - S => S,A
-                    - Wrap it in a class and refactor.
-                    - insertCoin naar analogie van turn veranderen met 2 parameter lijsten (currying)
-                    - er mist iets, eigenlijk welk maar in dit geval is a Unit.
                 </aside>
             </section>
 
@@ -497,6 +489,7 @@ object Machine {
                     And if we are going to use currying of the parameters, we get two parameter lists, with one
                     that is equal to the State datatype we created.
                     So, here we can also refactor it to use the State data type we created.
+                    TODO needs some explaining about currying.
                 </aside>
             </section>
 
@@ -505,12 +498,11 @@ object Machine {
                 <pre><code class="scala" data-noescape>
 object Machine {
   def insertCoin(coin: Coin): State[Machine, Unit] =
-    State(m => (m.copy(coins = m.coins + 1), ()))
+    <span class="fragment">State(m => (m.copy(coins = m.coins + 1), ()))</span>
                  </code></pre>
                 <aside class="notes">
                     So inserting a coin returns basically a datatype holding a function that will take a machine as a
-                    parameter
-                    and return a new machine with increased number of coins and no concrete value to return.
+                    parameter and return a new machine with increased number of coins and no concrete value to return.
                 </aside>
             </section>
         </section>
@@ -618,6 +610,10 @@ class State[S, +A](f: S => (S, A)) {
                     This gives us the return value: a tuple of (S,B).
 
                     Implementing this now, is a piece of cake (a big piece, that is ;-))
+                    TODO: 'g' in the ascii art is not entirely correct, applying g(a) gives us a State[S,B]. As we
+                    are already wrapping it in a new create State, we would get State[State,B]..?], so the resulting
+                    State[S,B] should be run so the function that is wrapped is a 'S => (S,B).
+                    Hoe kunnen we dat uitdrukken???
                 </aside>
             </section>
             <section>
@@ -711,8 +707,8 @@ def insertCoin(coin: Coin): State[Machine, Unit] =
                 <pre><code class="scala" data-noescape>
 def insertCoin(coin: Coin): State[Machine, Unit] = for {
   m <- State.get[Machine]
-  _ <- State.set(m.copy(coins = m.coins + 1))
-} yield ()
+  u <- State.set(m.copy(coins = m.coins + 1))
+} yield u
                 </code></pre>
             </section>
 
@@ -721,7 +717,8 @@ def insertCoin(coin: Coin): State[Machine, Unit] = for {
                 <pre><code class="scala" data-noescape>
 object State {
   ...  
-  def modify[S](f: S => S): State[S, Unit] = new State(s => (f(s), ()))
+  def modify[S](f: S => S): State[S, Unit] = 
+                    new State(s => (f(s), ()))
   ...
 }
                 </code></pre>
@@ -737,7 +734,7 @@ def insertCoin(coin: Coin): State[Machine, Unit] = for {
         <section>
             <h3>References</h3>
             <ul>
-                <li><a href="https://github.com/aggenebbisj/functionalstate">Presentation</a> </li>
+                <li><a href="https://github.com/aggenebbisj/functionalstate">https://github.com/aggenebbisj/functionalstate</a></li>
                 <li><a href="https://www.manning.com/books/functional-programming-in-scala">Functional Programming in
                     Scala</a></li>
                 <li><a href="https://www.youtube.com/watch?v=Jg3Uv_YWJqI)">Michael Pilquist - Scalaz State Monad</a>
@@ -748,6 +745,7 @@ def insertCoin(coin: Coin): State[Machine, Unit] = for {
             </ul>
         </section>
 
+<!-- CAN BE REMOVED LATER ON
         <section data-markdown="presentation.md"
                  data-separator="^---"
                  data-separator-vertical="^\n\n"
@@ -758,7 +756,7 @@ def insertCoin(coin: Coin): State[Machine, Unit] = for {
                  data-background-position="top left"
                  data-background-size="800px">
         </section>
-
+-->
 
         <section data-background-image="img/the_coming_curse_by_mistabobby1.jpg">
             <h2>Monadic Curse</h2>
