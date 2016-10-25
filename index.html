@@ -727,8 +727,8 @@ object State {
                 </code></pre>
                 <pre><code class="scala" data-noescape>
 def insertCoin(coin: Coin): State[Machine, Unit] = for {
-  _ <- State.modify(m.copy(coins = m.coins + 1))
-} yield ()
+  u <- State.modify[Machine](m => m.copy(coins = m.coins + 1))
+} yield u
                 </code></pre>
             </section>
 
