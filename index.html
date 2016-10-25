@@ -29,22 +29,29 @@
     <div class="slides">
         <section>
             <h1>Never change state and still get things done</h1>
-            <aside class="notes">Abstract from JFall site
-                State can be difficult.
-                Concurrent updates can lead to inconsistency, it can be difficult to scale and have you ever tried
+            <aside class="notes">
+                <strong>Abstract from JFall site</strong>
+                <p>
+                State can be difficult. Concurrent updates can lead to inconsistency, it can be difficult to scale and have you ever tried
                 testing a component with a random element without having to resort to mocking?
                 Functional purity can help us here.
+                </p>
+                <p>
                 In this talk, we are going to investigate how we can design a pure functional structure that abstracts
-                over state manipulations.
-                We will start with a solution that uses mutable state to solve a problem.
+                over state manipulations. We will start with a solution that uses mutable state to solve a problem.
                 Then we will refactor step by step and eventually transform it to pure functional code that never
                 changes state.
+                </p>
+                <p>
                 Familiarity with lambdas is assumed, but no knowledge of functional programming is required.
                 Code examples are in Scala, but no advanced language concepts are used, so knowledge of Java 8 is
                 sufficient.
+                </p>
+                <p>
                 As an audience, I would get a comparative overview of solving a problem in a traditional way with
                 imperative code and with pure functional structures.
                 I would also learn the benefits of purely functional state and its drawbacks.
+                </p>
             </aside>
         </section>
 
@@ -60,46 +67,54 @@
         </section>
 
         <section>
-            <section><h2>The domain</h2></section>
+            <section>
+                <h2>The domain</h2>
+            </section>
 
             <section data-background-image="/img/candydispenser.jpg"
                      data-background-size="auto 100%"
                      data-background-color="#ffffff">
                 <aside class="notes">
-                    A vending machine from which you can buy candies.
-                    - The vending machine can process two types of inputs from customers.
-                    1. They can insert money
-                    2. They can turn the knob to get the candy after they inserted the money.
-                    - The machine can be refilled with a new stock of candies.
-                    - The returns of the machine can be collected, all coins will be extracted.
+                    <p>A vending machine from which you can buy candies.</p>
+                    <p>
+                    The vending machine can process two types of inputs from customers.
+                        <ol>
+                            <li>They can insert money</li>
+                            <li>They can turn the knob to get the candy</li>
+                        </ol>
+                    </p>
                 </aside>
             </section>
 
-
+<!-- TODO the sealed trait is really really ugly -->
             <section>
-                <h3>The code</h3>
+                <h3><code class="scala">The code</code></h3>
                 <pre><code class="scala" data-trim data-noescape>
 sealed trait Coin
 case object Coin extends Coin
 
 case class Candy(color: String)
                     
-val candies: List[Candy] = ...
+val candies = List(Candy("red"), Candy("green"), Candy("blue"), ...)
                     </code></pre>
                 <aside class="notes">
-                    We have a simple economy with just one type of coins, just like a festival.
+                    <p>We have a simple economy with just one type of coin, just like a festival.</p>
+                    <p>The sealed trait is ugly but necessary to prevent <code>Coin.type</code> when matching.</p>
                 </aside>
             </section>
         </section>
 
+        <!-- Traditional OO Approach -->
         <section>
             <section>
                 <h2>The traditional OO approach</h2>
                 <img src="/img/object-oriented-software-construction.jpg"/>
                 <aside class="notes">
-                    who knows this classic writing?
-                    First edition written in 1988 by Bertrand Meyer, the second edition at a whopping 1200 pages
-                    appeared in 1997
+                    Who knows this classic writing?
+                    <ul>
+                        <li>First edition written in 1988 by Bertrand Meyer</li>
+                        <li>Second edition appeared in 1997 at a whopping 1200 pages</li>
+                    </ul>
                     "Meyer pursues the ideal of simple, elegant and user-friendly computer languages and
                     is one of the earliest and most vocal proponents of object-oriented programming (OOP).
                     His book Object-Oriented Software Construction is widely considered to be the best work on
@@ -108,11 +123,11 @@ val candies: List[Candy] = ...
                 </aside>
             </section>
             <section>
-                <h3>A first attempt command query separation</h3>
+                <h3>A first attempt: Command/Query Separation</h3>
                 <pre><code class="scala" data-trim data-noescape>
 class Machine(private val candies: ListBuffer[Candy],
               private var _coins: Int) {
-  private var _lastCandy:Candy = _
+  private var _lastCandy: Candy = _
 
   // 'Commands' modify machine
   def insertCoin(coin: Coin): Unit = _coins = _coins + 1
@@ -124,11 +139,12 @@ class Machine(private val candies: ListBuffer[Candy],
 }
                 </code></pre>
                 <aside class="notes">
-                    A ListBuffer is a mutable data structure.
-                    Due to command-query separation turn only changes the list of candies and the last candy that was
-                    returned.
-                    The _(underscore) is necessary to keep the mutable state private.
-
+                    <ul>
+                        <li>A ListBuffer is a mutable data structure.</li>
+                        <li>Due to command-query separation turn only changes the list of candies and the last candy that was returned.</li>
+                        <li>The _(underscore) is necessary to keep the mutable state private.</li>
+                    </ul>
+                    <p>
                     Meyer p. 748 "The features that characterize a class are divided into commands and queries.
                     A command serves to modify objects, a query to return information about objects."
                     p. 749 A function (defined as routine that returns a result) produces a concrete side effect if its
@@ -137,10 +153,12 @@ class Machine(private val candies: ListBuffer[Candy],
                     procedure call
                     On p. 751 he formulates the 'Command-Query separation principle' as "Functions should not produce
                     abstract side effects"
-
+                    </p>
+                    <p>
                     MB: aan de ene kant spreekt dit me wel aan vanwege de Command-Query separation, en dat queries geen
                     side effects zouden mogen hebben
                     aan de andere kant is de volgende slide de meest gebruikte moderne oplossing
+                    </p>
                 </aside>
             </section>
 
@@ -174,29 +192,32 @@ val candy: Candy = machine.turn()
 
 candy shouldBe Candy("Blue")
 machine.coins shouldBe 1
-machine.remainingCandies shouldBe 7
+machine.remainingCandies shouldBe 1
                 </code></pre>
                 <aside class="notes">
-                    mutCandies is a mutable list of candies.
+                    <code>candies</code> is a mutable list of candies.
                 </aside>
             </section>
 
         </section>
+        <!-- EOF Traditional OO Approach -->
 
-
+        <!-- Problems with traditional approach -->
         <section>
             <section>
                 <h2>Problems with the traditional approach</h2>
                 <aside class="notes">
-                    it has served us well, but in modern times there are some problems and an alternative.
+                    It has served us well, but in modern times there are some problems and an alternative.
                 </aside>
             </section>
 
             <section>
                 <h3>Sharing is no fun</h3>
                 <aside class="notes">
-                    benoemen problemen rond concurrency met shared mutable state,
-                    iets wat in de tijd van het boeknminder speelde. telefoons quad-core.
+                    <ul>
+                        <li>Concurrency and shared mutable state don't play nicely together</li>
+                        <li>Less of a problem back in the days. Now we have quad-core phones</li>
+                    </ul>
                 </aside>
             </section>
 
@@ -212,6 +233,7 @@ machine.remainingCandies shouldBe 7
             </section>
 
             <section>
+                <h3>Consider something simple</h3>
                 <pre><code class="scala" data-trim data-noescape>
                             def f(x: Int): Int
                                         
@@ -240,14 +262,15 @@ machine.remainingCandies shouldBe 7
                 </aside>
             </section>
             <section>
-                <h3>Try calling this function more than once...</h3>
+                <h3>Now try calling this function more than once...</h3>
                 <pre><code class="scala" data-noescape>
 var y = 1
 
 def f(x: Int): Int = {
-    y = y + x
+    y = x + y
     y
-}               <span class="fragment">f(2) --> 3</span>
+}               
+                <span class="fragment">f(2) --> 3</span>
                     
                 <span class="fragment">f(2) --> 5</span>
                     
@@ -264,13 +287,15 @@ def f(x: Int): Int = {
                 </aside>
             </section>
         </section>
+        <!-- EOF Problems with traditional approach -->
 
+        <!-- A more functional approach -->
         <section>
             <section>
                 <h2>Taking a more functional approach</h2>
                 <aside class="notes">
-                    Note: door hardware ontwikkelingen is FP sinds een aantal jaren een haalbare kaart.
-                    Een van de belangrijkste pillars of FP is referential transparency.
+                    Hardware improvements make FP feasible nowadays. This was different back in the 70's.
+                    One of the pillars of FP is referential transparency.
                 </aside>
             </section>
 
@@ -303,6 +328,12 @@ def f(x: Int): Int = {
                     <li>Parallellizable</li>
                 </ul>
                 <aside class="notes">
+                    <ul>
+                        <li>Reason: you can replace stuff and use induction</li>
+                        <li>Test: you can do blackbox testing: data in, data out</li>
+                        <li>Composable: functions play nice, just align the types</li>
+                        <li>Parallellizable: no shared mutable state</li>
+                    </ul>
                     Note: * Modular why? What are the benefits?
                     Looking at the red book (p. 79), they argue that
                     the lack of referential transparency implies that the code is not as testable, composable, modular
@@ -311,12 +342,15 @@ def f(x: Int): Int = {
             </section>
 
         </section>
+        <!-- EOF A more functional approach -->
 
+        <!-- Introducing immutability -->
         <section>
             <section>
-                <h2>Introducing immutability</h2>
+                <h2>Stop trying to change me</h2>
                 <aside class="notes">
                     Note: catchy title ;-)
+                    *edit* How's this?
                 </aside>
             </section>
 
@@ -335,7 +369,7 @@ class Machine(private val candies: ListBuffer[Candy],
             </code></pre>
             </section>
 
-            <section>
+            <section data-autoslide="2000">
                 <h3>Copy on write</h3>
                 <pre><code class="scala" data-noescape>
 case class Machine(candies: List[Candy], coins: Int)
@@ -371,6 +405,7 @@ val (m4, candy1) = Machine.turn(<span class="fragment highlight-red">m1</span>)
 m4.candies.size shouldBe 6
             </code></pre>
                 <aside class="notes">
+                    TODO fix test shouldBe 6 (test ex machina)
                     Everything is now immutable, but wiring the state through all the function calls is tedious.
                     And error prone: Do you spot the bug?
                 </aside>
@@ -393,7 +428,9 @@ m4.candies.size shouldBe 6
                 </aside>
             </section>
         </section>
+        <!-- EOF Introducing immutability -->
 
+        <!-- Using a Functional State Data Structure -->
         <section>
             <section>
                 <h2>Functional State</h2>
@@ -406,16 +443,16 @@ m4.candies.size shouldBe 6
                 <h3>Let's look at the type signature</h3>
 
                 <pre><code class="scala" data-noescape>
-                    def turn(m: Machine): (Machine, Candy)
+def turn(m: Machine): (Machine, Candy)
                 </code></pre>
             </section>
 
             <section>
-                <h3>Machine => (Machine, Candy)</h3>
+                <h3><code class="scala">Machine => (Machine, Candy)</code></h3>
             </section>
 
             <section>
-                <h3>S => (S<span class="fragment">'</span>, A)</h3>
+                <h3><code class="scala">S<span style="color: red" class="fragment" data-fragment-index="1">1</span> => (S<span style="color: red" class="fragment" data-fragment-index="1">2</span>, A)</code></h3>
                 <aside class="notes">
                     Or more abstract, we got a function that takes something that represents the State with an output
                     of a tuple of a new State and a value.
@@ -427,44 +464,50 @@ m4.candies.size shouldBe 6
                 <h3>Let's wrap this in a class</h3>
 
                 <pre><code class="scala" data-noescape>      
-            class State[S, +A](f: S => (S, A)) {
-                    
-              def run(initial: S): (S, A) = f(initial)
-                    
-            }
+class State[S, +A](f: S => (S, A)) {
+        
+  def run(initial: S): (S, A) = f(initial)
+        
+}
             </code></pre>
                 <aside class="notes">
+                    NB: <code class="scala">new State(f).run(s) == f(s)</code>
+                    <p>
+                    TODO should we get rid of the +A covariance for simplicity?
                     So we have a class State with two Type parameters S and A for the State and the value.
                     The constructor of the class does not take a regular value, but it takes that function
                     from a State to a new State and value.
-
+                    </p>
+                    <p>
                     Creating the State does not do anything useful yet.
                     Run will just apply that function and thus return a tuple of a new state and a value.
-
+                    </p>
+                    <p>
                     Without combinators the class does not do much of course.
                     We need the class because unlike JavaScript we cannot add methods to functions.
+                    </p>
                 </aside>
             </section>
 
             <section>
                 <h3>Refactor the current turn method</h3>
-                <pre><code class="scala" data-noescape>      
+                <div style="position: relative">
+                <pre class="fragment fade-out" style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;" data-fragment-index="0"><code class="scala" data-noescape>      
 case class Machine(coins: Int, candies: List[Candy])
 
 object Machine {
-  def turn(): State[Machine, Candy] =
-   <span class="fragment fade-out">new </span>State(m => (m.copy(candies = m.candies.tail), m.candies.head) )
-<span class="fragment">
-// Go, go, go ...
-val m0 = Machine(0, candies)
+  def turn(m: Machine): (Machine, Candy) = 
+    (m.copy(candies = m.candies.tail), m.candies.head)
+                </code></pre>
+                <pre class="fragment fade-in" style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;" data-fragment-index="0"><code class="scala" data-noescape>      
+case class Machine(coins: Int, candies: List[Candy])
 
-val t: State[Machine, Candy] = Machine.turn()
-val (m1, candy) = t run m0
-
-candy shouldBe Candy("Blue")
-</span>
-                    
-                    </code></pre>
+object Machine {
+  def turn(): State[Machine, Candy] = <span class="fragment fade-out">new </span>State(m => 
+    (m.copy(candies = m.candies.tail), m.candies.head)
+  )
+                </code></pre>
+                </div>
                 <aside class="notes">
                     If we add an apply function we can even remove the 'new'
                     And again, calling Machine.turn() does not do anything. It just defines a function that will
@@ -495,19 +538,45 @@ object Machine {
 
             <section>
                 <h3>Doing the mechanical refactoring</h3>
-                <pre><code class="scala" data-noescape>
+                <div style="position: relative">
+                <pre class="fragment fade-out" style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;" data-fragment-index="0"><code class="scala" data-noescape>
 object Machine {
-  def insertCoin(coin: Coin): State[Machine, Unit] =
-    <span class="fragment">State(m => (m.copy(coins = m.coins + 1), ()))</span>
-                 </code></pre>
+  
+  ...
+
+  def insertCoin(coin: Coin, m: Machine): Machine =
+    m.copy(coins = m.coins + 1)
+}
+                </code></pre>
+                <pre class="fragment fade-in" style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;" data-fragment-index="0"><code class="scala" data-noescape>
+object Machine {
+  
+  ...
+
+  def insertCoin(coin: Coin): State[Machine, Unit] = State(m => (
+    m.copy(coins = m.coins + 1), ())
+  )
+}
+                </code></pre>
                 <aside class="notes">
-                    So inserting a coin returns basically a datatype holding a function that will take a machine as a
+                    So inserting a coin basically return a datatype holding a function that will take a machine as a
                     parameter and return a new machine with increased number of coins and no concrete value to return.
                 </aside>
             </section>
+
+            <section data-background-image="img/camron_u_mad.jpg">
+                <h3>Now hold on a minute...</h3>
+                <h4>Didn't you just make it more complex?</h4>
+                <aside class="notes">
+                    Yes we did make it more complex, but...
+                    This allows us to use combinators (which allow us to rewrite this into something nicer)
+                    Background: u mad meme: http://nymag.com/selectall/2015/12/nine-canonical-responses-to-u-mad.html
+                </aside>
+            </section>
         </section>
+        <!-- EOF Using a Functional State Data Structure -->
 
-
+        <!-- Combinators -->
         <section>
             <section>
                 <h2>Combinators</h2>
@@ -730,6 +799,12 @@ def insertCoin(coin: Coin): State[Machine, Unit] = for {
             </section>
 
         </section>
+        <!-- Combinators -->
+
+        <section>
+            <h3>Summary</h3>
+            <p><!--Insert some funcional mumbojumbo here--></p>
+        </section>
 
         <section>
             <h3>References</h3>
@@ -784,18 +859,30 @@ def insertCoin(coin: Coin): State[Machine, Unit] = for {
     // More info https://github.com/hakimel/reveal.js#configuration
     Reveal.initialize({
         history: true,
+        
+        chalkboard: {
+            // optionally load pre-recorded chalkboard drawing from file
+            src: "foo.json",
+        },
 
         // More info https://github.com/hakimel/reveal.js#dependencies
         dependencies: [
-            {src: 'plugin/markdown/marked.js'},
-            {src: 'plugin/markdown/markdown.js'},
-            {src: 'plugin/notes/notes.js', async: true},
-            {
-                src: 'plugin/highlight/highlight.js', async: true, callback: function () {
-                hljs.initHighlightingOnLoad();
-            }
-            }
-        ]
+            { src: 'plugin/markdown/marked.js' },
+            { src: 'plugin/markdown/markdown.js' },
+            { src: 'plugin/notes/notes.js', async: true },
+            { src: 'plugin/highlight/highlight.js', async: true, callback: function () {
+                    hljs.initHighlightingOnLoad();
+                }
+            },
+            { src: 'plugin/chalkboard/chalkboard.js' }
+        ],
+        keyboard: {
+            67: function() { RevealChalkboard.toggleNotesCanvas() },    // toggle notes canvas when 'c' is pressed
+            66: function() { RevealChalkboard.toggleChalkboard() }, // toggle chalkboard when 'b' is pressed
+            46: function() { RevealChalkboard.clear() },    // clear chalkboard when 'DEL' is pressed
+             8: function() { RevealChalkboard.reset() },    // reset chalkboard data on current slide when 'BACKSPACE' is pressed
+            68: function() { RevealChalkboard.download() }, // downlad recorded chalkboard drawing when 'd' is pressed
+        }
     });
 </script>
 </body>
