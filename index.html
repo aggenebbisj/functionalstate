@@ -95,7 +95,7 @@ case object Coin extends Coin
 
 case class Candy(color: String)
                     
-val candies = List(Candy("red"), Candy("green"), Candy("blue"), ...)
+val candies = List("Blue", "Red", "White", "Purple", "Green", ...)
                     </code></pre>
                 <aside class="notes">
                     <p>We have a simple economy with just one type of coin, just like a festival.</p>
@@ -171,7 +171,6 @@ class Machine(private val candies: ListBuffer[Candy],
   def insertCoin(coin: Coin): Unit = _coins = _coins + 1
   def turn(): Candy = candies.remove(0)
 
-  def remainingCandies = candies.size
   def coins = _coins
 }
                 </code></pre>
@@ -192,7 +191,6 @@ val candy: Candy = machine.turn()
 
 candy shouldBe Candy("Blue")
 machine.coins shouldBe 1
-machine.remainingCandies shouldBe 1
                 </code></pre>
                 <aside class="notes">
                     <code>candies</code> is a mutable list of candies.
@@ -402,6 +400,7 @@ val (m2, candy0) = Machine.turn(m1)
 val m3           = Machine.insertCoin(Coin, m2)
 val (m4, candy1) = Machine.turn(<span class="fragment highlight-red">m1</span>)
 
+m4.coins shouldBe 2
 m4.candies.size shouldBe 6
             </code></pre>
                 <aside class="notes">
@@ -449,6 +448,9 @@ def turn(m: Machine): (Machine, Candy)
 
             <section>
                 <h3><code class="scala">Machine => (Machine, Candy)</code></h3>
+                <aside class="notes">
+                    We are separating the declaration of the manipulation and the computation/the moment that the manipulation is applied.
+                </aside>
             </section>
 
             <section>
