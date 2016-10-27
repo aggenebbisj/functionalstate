@@ -206,6 +206,8 @@ machine.coins shouldBe 1
                 <h2>Problems with the traditional approach</h2>
                 <aside class="notes">
                     It has served us well, but in modern times there are some problems and an alternative.
+                    "Functional programming was invented in 1957, before structured programming, before object oriented programming.
+                    But memory was too expensive to make it practical."
                 </aside>
             </section>
 
@@ -405,23 +407,39 @@ m4.candies.size shouldBe 6
             </code></pre>
                 <aside class="notes">
                     TODO fix test shouldBe 6 (test ex machina)
-                    Everything is now immutable, but wiring the state through all the function calls is tedious.
-                    And error prone: Do you spot the bug?
+                    <p>Everything is now immutable, but wiring the state through all the function calls is tedious.
+                    And error prone: Do you spot the bug?</p>
+                    <p>The other thing to notice is that this still looks like the imperative way of programming (do this and then do that).
+                        However, we do not mutate in place, but apply functions and assign them to new variables.
+                    </p>
                 </aside>
             </section>
 
             <section>
-                <h3>Pros</h3>
-                <ul>
-                    <li>Simple</li>
-                    <li>Immutable</li>
-                </ul>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Pros</th>
+                        <th>Cons</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>
+                            <ul>
+                                <li>Simple</li>
+                                <li>Immutable</li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul>
+                                <li>Error prone</li>
+                            </ul>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
 
-                <br/>
-                <h3>Cons</h3>
-                <ul>
-                    <li>Error prone</li>
-                </ul>
                 <aside class="notes">
                     Note: manual wiring of state through all the calls is error-prone
                 </aside>
@@ -802,11 +820,48 @@ def insertCoin(coin: Coin): State[Machine, Unit] = for {
 
         </section>
         <!-- Combinators -->
+        <section>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pros</th>
+                        <th>Cons</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <ul>
+                                <li>Simple</li>
+                                <li>Immutable</li>
+                                <li>Automatic state wiring</li>
+                                <li>For-comprehension</li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul>
+                                <li>Performance impact</li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
+            <aside class="notes">
+                <p>Simple in the sense we are still passing around functions and there are no special Scala constructs used
+                    like implicit, type level programming and such
+                    It is not simple if you are not used to this style.
+                </p>
+            </aside>
+        </section>
         <section>
             <h3>Summary</h3>
-            <p><!--Insert some funcional mumbojumbo here--></p>
+            <ul>
+                <li>simplifies computations on state</li>
+                <li>while maintaining referential transparency</li>
+            </ul>
         </section>
+
 
         <section>
             <h3>References</h3>

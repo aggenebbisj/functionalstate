@@ -1,3 +1,6 @@
 html.mybackground body {
     background: linear-gradient(to bottom, #030815, #041b36);
 }
+.reveal td {
+    vertical-align: top;
+}
