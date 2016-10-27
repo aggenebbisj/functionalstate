@@ -4,3 +4,10 @@ html.mybackground body {
 .reveal td {
     vertical-align: top;
 }
+
+.reveal {
+    background-image: url("/img/stars.svg");
+    background-position: top left;
+    background-size: 800px;
+    background-repeat: no-repeat;
+} 

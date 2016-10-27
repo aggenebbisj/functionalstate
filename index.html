@@ -28,7 +28,21 @@
 <div class="reveal">
     <div class="slides">
         <section>
-            <h1>Never change state and still get things done</h1>
+            <h1>Never change state</h1>
+            <h2>and still get things done</h2>
+            <br />
+            <br />
+            <table>
+                <thead>
+                    <tr><th>Remko de Jong</th><th>Martijn Blankestijn</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><a href="https://www.siteworkers.nl/" style="color: #ffc627">Siteworkers</a></td>
+                        <td><img src="img/logo-simple.svg" style="border: none; background-color: transparent; vertical-align: middle" height="50em"/></a></td>
+                    </tr>
+                </tbody>
+            </table>
             <aside class="notes">
                 <strong>Abstract from JFall site</strong>
                 <p>
@@ -95,7 +109,7 @@ case object Coin extends Coin
 
 case class Candy(color: String)
                     
-val candies = List("Blue", "Red", "White", "Purple", "Green", ...)
+val candies = List(Candy("Blue"), Candy("Red"), ...)
                     </code></pre>
                 <aside class="notes">
                     <p>We have a simple economy with just one type of coin, just like a festival.</p>
