@@ -1,6 +1,7 @@
 html.mybackground body {
     background: linear-gradient(to bottom, #030815, #041b36);
 }
+
 .reveal td {
     vertical-align: top;
 }
@@ -10,4 +11,8 @@ html.mybackground body {
     background-position: top left;
     background-size: 800px;
     background-repeat: no-repeat;
-} 
+}
+
+.reveal pre {
+    /*font-size: 0.7em;*/
+}

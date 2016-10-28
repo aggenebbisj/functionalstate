@@ -30,41 +30,48 @@
         <section>
             <h1>Never change state</h1>
             <h2>and still get things done</h2>
-            <br />
-            <br />
+            <br/>
+            <br/>
             <table>
                 <thead>
-                    <tr><th>Remko de Jong</th><th>Martijn Blankestijn</th></tr>
+                <tr>
+                    <th>Remko de Jong</th>
+                    <th>Martijn Blankestijn</th>
+                </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td><a href="https://www.siteworkers.nl/" style="color: #ffc627">Siteworkers</a></td>
-                        <td><img src="img/logo-simple.svg" style="border: none; background-color: transparent; vertical-align: middle" height="50em"/></a></td>
-                    </tr>
+                <tr>
+                    <td><a href="https://www.siteworkers.nl/" style="color: #ffc627">Siteworkers</a></td>
+                    <td><img src="img/logo-simple.svg"
+                             style="border: none; background-color: transparent; vertical-align: middle"
+                             height="50em"/></a></td>
+                </tr>
                 </tbody>
             </table>
             <aside class="notes">
                 <strong>Abstract from JFall site</strong>
                 <p>
-                State can be difficult. Concurrent updates can lead to inconsistency, it can be difficult to scale and have you ever tried
-                testing a component with a random element without having to resort to mocking?
-                Functional purity can help us here.
+                    State can be difficult. Concurrent updates can lead to inconsistency, it can be difficult to scale
+                    and have you ever tried testing a component with a random element without having to resort to
+                    mocking?
+                    Functional purity can help us here.
                 </p>
                 <p>
-                In this talk, we are going to investigate how we can design a pure functional structure that abstracts
-                over state manipulations. We will start with a solution that uses mutable state to solve a problem.
-                Then we will refactor step by step and eventually transform it to pure functional code that never
-                changes state.
+                    In this talk, we are going to investigate how we can design a pure functional structure that
+                    abstracts over state manipulations. We will start with a solution that uses mutable state to solve a
+                    problem.
+                    Then we will refactor step by step and eventually transform it to pure functional code that never
+                    changes state.
                 </p>
                 <p>
-                Familiarity with lambdas is assumed, but no knowledge of functional programming is required.
-                Code examples are in Scala, but no advanced language concepts are used, so knowledge of Java 8 is
-                sufficient.
+                    Familiarity with lambdas is assumed, but no knowledge of functional programming is required.
+                    Code examples are in Scala, but no advanced language concepts are used, so knowledge of Java 8 is
+                    sufficient.
                 </p>
                 <p>
-                As an audience, I would get a comparative overview of solving a problem in a traditional way with
-                imperative code and with pure functional structures.
-                I would also learn the benefits of purely functional state and its drawbacks.
+                    As an audience, I would get a comparative overview of solving a problem in a traditional way with
+                    imperative code and with pure functional structures.
+                    I would also learn the benefits of purely functional state and its drawbacks.
                 </p>
             </aside>
         </section>
@@ -91,16 +98,16 @@
                 <aside class="notes">
                     <p>A vending machine from which you can buy candies.</p>
                     <p>
-                    The vending machine can process two types of inputs from customers.
-                        <ol>
-                            <li>They can insert money</li>
-                            <li>They can turn the knob to get the candy</li>
-                        </ol>
+                        The vending machine can process two types of inputs from customers.
+                    <ol>
+                        <li>They can insert money</li>
+                        <li>They can turn the knob to get the candy</li>
+                    </ol>
                     </p>
                 </aside>
             </section>
 
-<!-- TODO the sealed trait is really really ugly -->
+            <!-- TODO the sealed trait is really really ugly -->
             <section>
                 <h3><code class="scala">The code</code></h3>
                 <pre><code class="scala" data-trim data-noescape>
@@ -155,23 +162,28 @@ class Machine(private val candies: ListBuffer[Candy],
                 <aside class="notes">
                     <ul>
                         <li>A ListBuffer is a mutable data structure.</li>
-                        <li>Due to command-query separation turn only changes the list of candies and the last candy that was returned.</li>
+                        <li>Due to command-query separation turn only changes the list of candies and the last candy
+                            that was returned.
+                        </li>
                         <li>The _(underscore) is necessary to keep the mutable state private.</li>
                     </ul>
                     <p>
-                    Meyer p. 748 "The features that characterize a class are divided into commands and queries.
-                    A command serves to modify objects, a query to return information about objects."
-                    p. 749 A function (defined as routine that returns a result) produces a concrete side effect if its
-                    body contains any of the following
-                    * an assignment, assignment attempt or creation instruction whose target is an attribute * a
-                    procedure call
-                    On p. 751 he formulates the 'Command-Query separation principle' as "Functions should not produce
-                    abstract side effects"
+                        Meyer p. 748 "The features that characterize a class are divided into commands and queries.
+                        A command serves to modify objects, a query to return information about objects."
+                        p. 749 A function (defined as routine that returns a result) produces a concrete side effect if
+                        its
+                        body contains any of the following
+                        * an assignment, assignment attempt or creation instruction whose target is an attribute * a
+                        procedure call
+                        On p. 751 he formulates the 'Command-Query separation principle' as "Functions should not
+                        produce
+                        abstract side effects"
                     </p>
                     <p>
-                    MB: aan de ene kant spreekt dit me wel aan vanwege de Command-Query separation, en dat queries geen
-                    side effects zouden mogen hebben
-                    aan de andere kant is de volgende slide de meest gebruikte moderne oplossing
+                        MB: aan de ene kant spreekt dit me wel aan vanwege de Command-Query separation, en dat queries
+                        geen
+                        side effects zouden mogen hebben
+                        aan de andere kant is de volgende slide de meest gebruikte moderne oplossing
                     </p>
                 </aside>
             </section>
@@ -220,7 +232,8 @@ machine.coins shouldBe 1
                 <h2>Problems with the traditional approach</h2>
                 <aside class="notes">
                     It has served us well, but in modern times there are some problems and an alternative.
-                    "Functional programming was invented in 1957, before structured programming, before object oriented programming.
+                    "Functional programming was invented in 1957, before structured programming, before object oriented
+                    programming.
                     But memory was too expensive to make it practical."
                 </aside>
             </section>
@@ -422,8 +435,9 @@ m4.candies.size shouldBe 6
                 <aside class="notes">
                     TODO fix test shouldBe 6 (test ex machina)
                     <p>Everything is now immutable, but wiring the state through all the function calls is tedious.
-                    And error prone: Do you spot the bug?</p>
-                    <p>The other thing to notice is that this still looks like the imperative way of programming (do this and then do that).
+                        And error prone: Do you spot the bug?</p>
+                    <p>The other thing to notice is that this still looks like the imperative way of programming (do
+                        this and then do that).
                         However, we do not mutate in place, but apply functions and assign them to new variables.
                     </p>
                 </aside>
@@ -455,7 +469,7 @@ m4.candies.size shouldBe 6
                 </table>
 
                 <aside class="notes">
-                    Note: manual wiring of state through all the calls is error-prone
+                    Note: manual, explicit wiring of state through all the calls is error-prone
                 </aside>
             </section>
         </section>
@@ -481,12 +495,14 @@ def turn(m: Machine): (Machine, Candy)
             <section>
                 <h3><code class="scala">Machine => (Machine, Candy)</code></h3>
                 <aside class="notes">
-                    We are separating the declaration of the manipulation and the computation/the moment that the manipulation is applied.
+                    We are separating the declaration of the manipulation and the computation/the moment that the
+                    manipulation is applied.
                 </aside>
             </section>
 
             <section>
-                <h3><code class="scala">S<span style="color: red" class="fragment" data-fragment-index="1">1</span> => (S<span style="color: red" class="fragment" data-fragment-index="1">2</span>, A)</code></h3>
+                <h3><code class="scala">S<span style="color: red" class="fragment" data-fragment-index="1">1</span> =>
+                    (S<span style="color: red" class="fragment" data-fragment-index="1">2</span>, A)</code></h3>
                 <aside class="notes">
                     Or more abstract, we got a function that takes something that represents the State with an output
                     of a tuple of a new State and a value.
@@ -507,18 +523,18 @@ class State[S, +A](f: S => (S, A)) {
                 <aside class="notes">
                     NB: <code class="scala">new State(f).run(s) == f(s)</code>
                     <p>
-                    TODO should we get rid of the +A covariance for simplicity?
-                    So we have a class State with two Type parameters S and A for the State and the value.
-                    The constructor of the class does not take a regular value, but it takes that function
-                    from a State to a new State and value.
+                        TODO should we get rid of the +A covariance for simplicity?
+                        So we have a class State with two Type parameters S and A for the State and the value.
+                        The constructor of the class does not take a regular value, but it takes that function
+                        from a State to a new State and value.
                     </p>
                     <p>
-                    Creating the State does not do anything useful yet.
-                    Run will just apply that function and thus return a tuple of a new state and a value.
+                        Creating the State does not do anything useful yet.
+                        Run will just apply/invoke that function and thus return a tuple of a new state and a value.
                     </p>
                     <p>
-                    Without combinators the class does not do much of course.
-                    We need the class because unlike JavaScript we cannot add methods to functions.
+                        Without combinators the class does not do much of course.
+                        We need the class because unlike JavaScript we cannot add methods to functions.
                     </p>
                 </aside>
             </section>
@@ -526,14 +542,18 @@ class State[S, +A](f: S => (S, A)) {
             <section>
                 <h3>Refactor the current turn method</h3>
                 <div style="position: relative">
-                <pre class="fragment fade-out" style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;" data-fragment-index="0"><code class="scala" data-noescape>      
+                <pre class="fragment fade-out"
+                     style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;"
+                     data-fragment-index="0"><code class="scala" data-noescape>      
 case class Machine(coins: Int, candies: List[Candy])
 
 object Machine {
   def turn(m: Machine): (Machine, Candy) = 
     (m.copy(candies = m.candies.tail), m.candies.head)
                 </code></pre>
-                <pre class="fragment fade-in" style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;" data-fragment-index="0"><code class="scala" data-noescape>      
+                    <pre class="fragment fade-in"
+                         style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;"
+                         data-fragment-index="0"><code class="scala" data-noescape>      
 case class Machine(coins: Int, candies: List[Candy])
 
 object Machine {
@@ -561,19 +581,41 @@ object Machine {
                         class="fragment" data-fragment-index="1">, Unit)</span> = 
                  </code></pre>
                 <aside class="notes">
-                    This does not look like a function S => (S,A),
-                    but looking at it more abstractly: the return value from insertCoin is nothing or Unit.
-                    And if we are going to use currying of the parameters, we get two parameter lists, with one
-                    that is equal to the State datatype we created.
-                    So, here we can also refactor it to use the State data type we created.
-                    TODO needs some explaining about currying.
+                    <p>This does not look like a function S => (S,A),
+                        but looking at it more abstractly: the return value from insertCoin is nothing or Unit.</p>
+
+                    <p>And if we are going to use currying of the parameters, we get two parameter lists, with one
+                        that is equal to the State datatype we created.
+                        Currying is named after Haskell Brooks Curry , who was an American mathematician and logician.
+                        It is the technique of translating the evaluation of a function that takes multiple arguments
+                        (or a tuple of arguments) into evaluating a sequence of functions, each with a single argument.
+                        In this case we change a function that takes two parameters and returns a tuple of Machine and
+                        Unit
+                        to a function with one parameter (Coin), that returns a function that takes one parameter and
+                        returns a tuple of Machine and Unit.
+                    <p>So, here we can also refactor it to use the State data type we created.
+                    </p>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Ok, but what about inserting a Coin?</h3>
+                <pre><code class="scala" data-noescape>
+object Machine {
+  def insertCoin(coin: Coin) : State[Machine, Unit] <span class="fragment">= State(m => 
+    ( m.copy(coins = m.coins + 1), () )
+  ) </span>
+                 </code></pre>
+                <aside class="notes">
                 </aside>
             </section>
 
             <section>
                 <h3>Doing the mechanical refactoring</h3>
                 <div style="position: relative">
-                <pre class="fragment fade-out" style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;" data-fragment-index="0"><code class="scala" data-noescape>
+                <pre class="fragment fade-out"
+                     style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;"
+                     data-fragment-index="0"><code class="scala" data-noescape>
 object Machine {
   
   ...
@@ -582,7 +624,9 @@ object Machine {
     m.copy(coins = m.coins + 1)
 }
                 </code></pre>
-                <pre class="fragment fade-in" style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;" data-fragment-index="0"><code class="scala" data-noescape>
+                    <pre class="fragment fade-in"
+                         style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;"
+                         data-fragment-index="0"><code class="scala" data-noescape>
 object Machine {
   
   ...
@@ -592,10 +636,11 @@ object Machine {
   )
 }
                 </code></pre>
-                <aside class="notes">
-                    So inserting a coin basically return a datatype holding a function that will take a machine as a
-                    parameter and return a new machine with increased number of coins and no concrete value to return.
-                </aside>
+                    <aside class="notes">
+                        So inserting a coin basically return a datatype holding a function that will take a machine as a
+                        parameter and return a new machine with increased number of coins and no concrete value to
+                        return.
+                    </aside>
             </section>
 
             <section data-background-image="img/camron_u_mad.jpg">
@@ -789,7 +834,7 @@ object State {
   def get[S]: State[S, S] = new State(s => (s, s))
   ...
 }
-                </code></pre>      
+                </code></pre>
             </section>
             <section>
                 <h3>And with get comes set</h3>
@@ -799,7 +844,7 @@ object State {
   def set[S](newS: S): State[S, Unit] = new State(_ => (newS, ()))
   ...
 }
-                </code></pre>      
+                </code></pre>
             </section>
             <section>
                 <h3>Doing the refactoring</h3>
@@ -837,32 +882,33 @@ def insertCoin(coin: Coin): State[Machine, Unit] = for {
         <section>
             <table>
                 <thead>
-                    <tr>
-                        <th>Pros</th>
-                        <th>Cons</th>
-                    </tr>
+                <tr>
+                    <th>Pros</th>
+                    <th>Cons</th>
+                </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>
-                            <ul>
-                                <li>Simple</li>
-                                <li>Immutable</li>
-                                <li>Automatic state wiring</li>
-                                <li>For-comprehension</li>
-                            </ul>
-                        </td>
-                        <td>
-                            <ul>
-                                <li>Performance impact</li>
-                            </ul>
-                        </td>
-                    </tr>
+                <tr>
+                    <td>
+                        <ul>
+                            <li>Simple</li>
+                            <li>Immutable</li>
+                            <li>Automatic state wiring</li>
+                            <li>For-comprehension</li>
+                        </ul>
+                    </td>
+                    <td>
+                        <ul>
+                            <li>Performance impact</li>
+                        </ul>
+                    </td>
+                </tr>
                 </tbody>
             </table>
 
             <aside class="notes">
-                <p>Simple in the sense we are still passing around functions and there are no special Scala constructs used
+                <p>Simple in the sense we are still passing around functions and there are no special Scala constructs
+                    used
                     like implicit, type level programming and such
                     It is not simple if you are not used to this style.
                 </p>
@@ -880,29 +926,30 @@ def insertCoin(coin: Coin): State[Machine, Unit] = for {
         <section>
             <h3>References</h3>
             <ul>
-                <li><a href="https://github.com/aggenebbisj/functionalstate">https://github.com/aggenebbisj/functionalstate</a></li>
+                <li><a href="https://github.com/aggenebbisj/functionalstate">https://github.com/aggenebbisj/functionalstate</a>
+                </li>
                 <li><a href="https://www.manning.com/books/functional-programming-in-scala">Functional Programming in
                     Scala</a></li>
                 <li><a href="https://www.youtube.com/watch?v=Jg3Uv_YWJqI)">Michael Pilquist - Scalaz State Monad</a>
                 </li>
                 <li><a href="https://www.youtube.com/watch?v=XxzzJiXHOJs](https://www.youtube.com/watch?v=XxzzJiXHOJs">Brian
                     Beckman: The Zen of Stateless State - The State Monad</a></li>
-                
+
             </ul>
         </section>
 
-<!-- CAN BE REMOVED LATER ON
-        <section data-markdown="presentation.md"
-                 data-separator="^---"
-                 data-separator-vertical="^\n\n"
-                 data-separator-notes="^Note:"
-                 data-charset="UTF8"
-                 data-state="mybackground"
-                 data-background-image="img/stars.svg"
-                 data-background-position="top left"
-                 data-background-size="800px">
-        </section>
--->
+        <!-- CAN BE REMOVED LATER ON
+                <section data-markdown="presentation.md"
+                         data-separator="^---"
+                         data-separator-vertical="^\n\n"
+                         data-separator-notes="^Note:"
+                         data-charset="UTF8"
+                         data-state="mybackground"
+                         data-background-image="img/stars.svg"
+                         data-background-position="top left"
+                         data-background-size="800px">
+                </section>
+        -->
 
         <section data-background-image="img/the_coming_curse_by_mistabobby1.jpg">
             <h2>Monadic Curse</h2>
@@ -929,8 +976,11 @@ def insertCoin(coin: Coin): State[Machine, Unit] = for {
 <script>
     // More info https://github.com/hakimel/reveal.js#configuration
     Reveal.initialize({
+        // center: false, TODO: does not work with the arrows on Immutable Drive, also true for the width
+        // width: '100%',  // makes the slide wider 
+
         history: true,
-        
+
         chalkboard: {
             // optionally load pre-recorded chalkboard drawing from file
             src: "foo.json",
@@ -938,21 +988,32 @@ def insertCoin(coin: Coin): State[Machine, Unit] = for {
 
         // More info https://github.com/hakimel/reveal.js#dependencies
         dependencies: [
-            { src: 'plugin/markdown/marked.js' },
-            { src: 'plugin/markdown/markdown.js' },
-            { src: 'plugin/notes/notes.js', async: true },
-            { src: 'plugin/highlight/highlight.js', async: true, callback: function () {
-                    hljs.initHighlightingOnLoad();
-                }
+            {src: 'plugin/markdown/marked.js'},
+            {src: 'plugin/markdown/markdown.js'},
+            {src: 'plugin/notes/notes.js', async: true},
+            {
+                src: 'plugin/highlight/highlight.js', async: true, callback: function () {
+                hljs.initHighlightingOnLoad();
+            }
             },
-            { src: 'plugin/chalkboard/chalkboard.js' }
+            {src: 'plugin/chalkboard/chalkboard.js'}
         ],
         keyboard: {
-            67: function() { RevealChalkboard.toggleNotesCanvas() },    // toggle notes canvas when 'c' is pressed
-            66: function() { RevealChalkboard.toggleChalkboard() }, // toggle chalkboard when 'b' is pressed
-            46: function() { RevealChalkboard.clear() },    // clear chalkboard when 'DEL' is pressed
-             8: function() { RevealChalkboard.reset() },    // reset chalkboard data on current slide when 'BACKSPACE' is pressed
-            68: function() { RevealChalkboard.download() }, // downlad recorded chalkboard drawing when 'd' is pressed
+            67: function () {
+                RevealChalkboard.toggleNotesCanvas()
+            },    // toggle notes canvas when 'c' is pressed
+            66: function () {
+                RevealChalkboard.toggleChalkboard()
+            }, // toggle chalkboard when 'b' is pressed
+            46: function () {
+                RevealChalkboard.clear()
+            },    // clear chalkboard when 'DEL' is pressed
+            8: function () {
+                RevealChalkboard.reset()
+            },    // reset chalkboard data on current slide when 'BACKSPACE' is pressed
+            68: function () {
+                RevealChalkboard.download()
+            }, // downlad recorded chalkboard drawing when 'd' is pressed
         }
     });
 </script>
