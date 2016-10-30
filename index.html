@@ -407,7 +407,7 @@ object Machine {
   def turn(m: Machine): (Machine, Candy) = 
     (m.copy(candies = m.candies.tail), m.candies.head)
 
-  def insertCoin(coin: Coin, m: Machine): (Machine) =
+  def insertCoin(coin: Coin, m: Machine): Machine =
     m.copy(coins = m.coins + 1)
 }
             </code></pre>
@@ -436,10 +436,10 @@ object Machine {
                 <pre><code class="scala" data-noescape>        
 val m0 = Machine(candies, 0)
 
-val m1 : Machine   = Machine.insertCoin(Coin, m0)
+val  m1: Machine   = Machine.insertCoin(Coin, m0)
 val (m2, candy0)   = turn(m1)
 
-val m3             = insertCoin(Coin, m2)
+val  m3            = insertCoin(Coin, m2)
 val (m4, candy1)   = turn(<span class="fragment highlight-red">m1</span>)
 
 m4.coins shouldBe 2
@@ -565,7 +565,6 @@ class State[S, +A](f: S => (S, A)) {
 
             <section>
                 <h3>Refactor the current turn method</h3>
-                <div style="position: relative">
                 <pre class="fragment fade-out"
                      style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;"
                      data-fragment-index="0"><code class="scala" data-noescape>      
@@ -585,7 +584,6 @@ object Machine {
     (m.copy(candies = m.candies.tail), m.candies.head)
   )
                 </code></pre>
-                </div>
                 <aside class="notes">
                     If we add an apply function we can even remove the 'new'
                     And again, calling Machine.turn() does not do anything. It just defines a function that will
@@ -597,12 +595,11 @@ object Machine {
             <section>
                 <h3>Ok, but what about inserting a Coin?</h3>
                 <pre><code class="scala" data-noescape>
-object Machine {
-  def insertCoin(coin: Coin<span class="fragment" data-fragment-index="2">)</span><span class="fragment fade-out"
+def insertCoin(coin: Coin<span class="fragment" data-fragment-index="2">)</span><span class="fragment fade-out"
                                                                                         data-fragment-index="2">,</span><span
                         class="fragment" data-fragment-index="2">(</span>m: Machine): <span class="fragment"
                                                                                             data-fragment-index="1">(</span>Machine<span
-                        class="fragment" data-fragment-index="1">, Unit)</span> = 
+                        class="fragment" data-fragment-index="1">, Unit)</span>
                  </code></pre>
                 <aside class="notes">
                     <p>This does not look like a function S => (S,A),
@@ -623,20 +620,7 @@ object Machine {
             </section>
 
             <section>
-                <h3>Ok, but what about inserting a Coin?</h3>
-                <pre><code class="scala" data-noescape>
-object Machine {
-  def insertCoin(coin: Coin) : State[Machine, Unit] <span class="fragment">= State(m => 
-    ( m.copy(coins = m.coins + 1), () )
-  ) </span>
-                 </code></pre>
-                <aside class="notes">
-                </aside>
-            </section>
-
-            <section>
-                <h3>Doing the mechanical refactoring</h3>
-                <div style="position: relative">
+                <h3>Let's refactor this as well</h3>
                 <pre class="fragment fade-out"
                      style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;"
                      data-fragment-index="0"><code class="scala" data-noescape>
@@ -644,8 +628,8 @@ object Machine {
   
   ...
 
-  def insertCoin(coin: Coin, m: Machine): Machine =
-    m.copy(coins = m.coins + 1)
+  def insertCoin(coin: Coin, m: Machine): (Machine, Unit) =
+    (m.copy(coins = m.coins + 1), ())
 }
                 </code></pre>
                     <pre class="fragment fade-in"
@@ -662,8 +646,7 @@ object Machine {
                 </code></pre>
                     <aside class="notes">
                         So inserting a coin basically return a datatype holding a function that will take a machine as a
-                        parameter and return a new machine with increased number of coins and no concrete value to
-                        return.
+                        parameter and return a new machine with increased number of coins and no concrete return value.
                     </aside>
             </section>
 
@@ -791,7 +774,7 @@ class State[S, +A](f: S => (S, A)) {
             <section>
                 <h3>FlatMap chains two state functions</h3>
                 <pre><code class="scala" data-noescape>
-val m0 = Machine(0, candies)
+val m0 = Machine(0, List(Candy("Blue"), Candy("Red"), ...))
 
 val program = Machine.insertCoin(Coin)
                      .flatMap(_ => Machine.turn())
@@ -804,13 +787,15 @@ candy shouldBe Candy("Blue")
                     Remember we get a State[Machine, Unit) as a result. And then we want to turn the machine.
                     As we are not interested in the resulting value of insertCoin (Unit) we disregard the parameter.
                     The State (or the Machine) will be used in the flatMap function.
-                    In the end the resulting return type of turn is the State[Machine,Candy], so we the last validation
-                    is successfull.
+                    In the end the resulting return type of turn is the State[Machine, Candy], so we know the last
+                    validation is successful.
                 </aside>
             </section>
             <section>
-                <h3>This is getting cumbersome</h3>
+                <h3>This quickly gets cumbersome</h3>
                 <pre><code class="scala" data-noescape>
+val m0 = Machine(0, List(Candy("Blue"), Candy("Red"), ...))
+
 val program =
   Machine.insertCoin(Coin)
     .flatMap(_ => Machine.turn()
@@ -821,6 +806,15 @@ val (m1, candy) = program.run(m0)
 candy shouldBe Candy("Red")
                 </code></pre>
                 <aside class="notes">
+                    Note how we disregard intermediate values. That is because we are only interested
+                    in the end result. This can be a bit confusing. We are not throwing away an end 
+                    result, we just describe how different functions are chained together. To chain the
+                    functions though, we do not need the value produced by the previous one.
+
+                    <code class="scala">
+                    val s1 = new State[String, Int](s => (s, s.length))
+                        .flatMap[Int](length => new State[String, Int](s => (s, 2 * length)))
+                    </code>
                 </aside>
             </section>
 
@@ -1007,7 +1001,7 @@ def insertCoin(coin: Coin): State[Machine, Unit] = for {
 
         chalkboard: {
             // optionally load pre-recorded chalkboard drawing from file
-            src: "foo.json",
+            // src: "foo.json",
         },
 
         // More info https://github.com/hakimel/reveal.js#dependencies
