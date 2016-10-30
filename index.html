@@ -306,11 +306,11 @@ def f(x: Int): Int = {
                 <span class="fragment">f(f(f(2))) --> 64</span>
                 </code></pre>
                 <aside class="notes">
-                    This is confusing. The changing of global state is a side-effect which makes it a lot harder to
-                    reason about this piece of code. And to calculate the right value you have to know the history of
-                    changes.
-                    And it doesn't always have to be variables that are global, this also occurs when the scope of the
-                    variable is greater than the function it is used in.
+                    <p>This is confusing. The changing of state with a wider scope than the function is a side-effect
+                        which makes it a lot harder to reason about this piece of code.
+                        And to calculate the right value you have to know the history of changes.</p>
+                    <p>And it doesn't always have to be variables that are global, this also occurs when the scope of
+                        the variable is greater than the function it is used in.</p>
                 </aside>
             </section>
         </section>
@@ -412,9 +412,22 @@ object Machine {
 }
             </code></pre>
                 <aside class="notes">
-                    We have to introduce companion object and case class (with copy, public val attributes) here.
-                    Best explained for Java people as an object to hold your static methods.
-                    We need the methods out of Machine case class to prepare for type signature of State Monad.
+                    <p>Noteworthy is the 'case' modifier in front of Machine.
+                        The Scala compiler will add some synctactic conveniences to that class like:
+                    </p>
+                    <ul>
+                        <li>a factory method (no new keyword needed)</li>
+                        <li>all arguments in the parameter list are implicitly val's, so immutable</li>
+                        <li>adds a copy method for making modified copies</li>
+                    </ul>
+
+                    <p>The keyword 'object' indicates that something is not a class, but a singleton.
+                        If it has the same name as a class in the same file, it is called the <em>companion object</em>,
+                        because both can access eachothers private members</p>
+                    <p>
+                        We need the methods out of Machine case class to prepare for type signature of State Monad.</p>
+                    <p>We have now made the state explicit by adding it as an argument and return type to every function call.
+                    Tbe state is not longer implicit, hidden within some object that will be updated. It is made explicit</p>
                 </aside>
             </section>
 
@@ -423,17 +436,20 @@ object Machine {
                 <pre><code class="scala" data-noescape>        
 val m0 = Machine(candies, 0)
 
-val m1:Machine   = Machine.insertCoin(Coin, m0)
-val (m2, candy0) = Machine.turn(m1)
+val m1 : Machine   = Machine.insertCoin(Coin, m0)
+val (m2, candy0)   = turn(m1)
 
-val m3           = Machine.insertCoin(Coin, m2)
-val (m4, candy1) = Machine.turn(<span class="fragment highlight-red">m1</span>)
+val m3             = insertCoin(Coin, m2)
+val (m4, candy1)   = turn(<span class="fragment highlight-red">m1</span>)
 
 m4.coins shouldBe 2
 m4.candies.size shouldBe 6
             </code></pre>
                 <aside class="notes">
                     TODO fix test shouldBe 6 (test ex machina)
+                    <p>While inserting the first Coin we show the types and singleton object in which the function is
+                        defined,
+                        in lines after that we import those functions and let the compiler figure it out.</p>
                     <p>Everything is now immutable, but wiring the state through all the function calls is tedious.
                         And error prone: Do you spot the bug?</p>
                     <p>The other thing to notice is that this still looks like the imperative way of programming (do
@@ -444,6 +460,7 @@ m4.candies.size shouldBe 6
             </section>
 
             <section>
+                <h3>Statelessly with manual wiring</h3>
                 <table>
                     <thead>
                     <tr>
@@ -462,6 +479,7 @@ m4.candies.size shouldBe 6
                         <td>
                             <ul>
                                 <li>Error prone</li>
+                                <li>Extra argument for every state manipulating function</li>
                             </ul>
                         </td>
                     </tr>
@@ -469,7 +487,13 @@ m4.candies.size shouldBe 6
                 </table>
 
                 <aside class="notes">
-                    Note: manual, explicit wiring of state through all the calls is error-prone
+                    <p>
+                        Now we have seen the basic pattern for changing a stateful API to a purely functional API.
+                        The key to recovering referential transparency is to make the state updates explicit.
+                        So we pass in the old state, return the new state and the value if that exists and leave the old
+                        state unchanged.
+                    </p>
+                    <p>Note: manual, explicit wiring of state through all the calls is error-prone as we have seen</p>
                 </aside>
             </section>
         </section>
@@ -506,7 +530,7 @@ def turn(m: Machine): (Machine, Candy)
                 <aside class="notes">
                     Or more abstract, we got a function that takes something that represents the State with an output
                     of a tuple of a new State and a value.
-                    This is going to be are basic abstract, a function from a State to a new State and a value.
+                    So we have a function from a State to a new State and a value.
                 </aside>
             </section>
 
