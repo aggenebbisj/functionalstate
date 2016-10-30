@@ -14,5 +14,13 @@ html.mybackground body {
 }
 
 .reveal pre {
-    /*font-size: 0.7em;*/
+    /* font size of the code examples */
+    font-size: 0.7em;
+}
+.reveal pre code {
+    max-height: 600px;
+}
+/* Changes the color of the Siteworks logo */
+.logo path {
+    fill: #ffc627
 }
