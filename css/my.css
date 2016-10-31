@@ -15,11 +15,21 @@ html.mybackground body {
 
 .reveal pre {
     /* font size of the code examples */
-    font-size: 0.7em;
+    font-size: 0.60em;
 }
 .reveal pre code {
     max-height: 600px;
 }
+
+.reveal .remko {
+    color: chartreuse;
+}
+
+.reveal .martijn {
+    color: gold;
+}
+
+
 /* Changes the color of the Siteworks logo */
 .logo path {
     fill: #ffc627
