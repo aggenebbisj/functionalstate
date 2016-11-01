@@ -104,14 +104,79 @@
         </section>
 
         <section>
-            <h2>Agenda</h2>
+            
+            <section data-background-image="/img/why.jpg"
+                     data-background-size="auto 100%"
+                     data-background-color="#ffffff">
+                <aside class="notes">
+                    <ul>
+                        <li>Why this talk?</li>
+                        <li>Transitioning to FP, looking for new solutions</li>
+                        <li>Use case in real project</li>
+                        <li>Single machine planning</li>
+                    </ul>
+                </aside>
+            </section>
 
-            <ul>
-                <li>Traditional OO approach</li>
-                <li>Transitioning from mutable to immutable</li>
-                <li>Immutable with State data structure</li>
+            <section>
+                <h2>Roadmap</h2>
 
-            </ul>
+                <ol>
+                    <li>Traditional OO approach</li>
+                    <li>Transitioning from mutable to immutable</li>
+                    <li>Immutable with State data structure</li>
+                </ol>
+            </section>
+
+            <section data-background-image="/img/scala-logo.png"
+                     data-background-size="auto 100%">
+                <!-- <h2>WARNING: Scala ahead</h2> -->
+                <aside class="notes">
+                    <ul>
+                        <li>Code samples in Scala</li>
+                        <li>No advanced language constructs used however</li>
+                    </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h2>Crash course Scala</h2>
+            </section>
+            
+            <section>
+                <pre>
+                    <code class="scala">var foo: Int // Scala</code>
+                    <code class="fragment Java">int foo; // Java</code>
+                    <code class="fragment scala">val foo: Int // Scala</code>
+                    <code class="fragment Java">final int foo; // Java</code>
+                </pre>
+            </section>
+
+            <section>
+                <pre>
+                    <code class="scala">trait Foo // Scala</code>
+                    <code class="fragment Java">interface Foo; // Java</code>
+                </pre>
+            </section>
+            
+            <section>
+                <pre>
+                    <code class="scala">case class Foo(x: Int) // Scala</code>                    
+<code class="Java">// Java
+class Foo {
+    final int x;
+
+    public Foo(int x) {
+        this.x = x;
+    }
+
+    public int getX() { return x; }
+
+    // and some additional methods like equals, copy, ...
+}</code>
+                </pre>
+            </section>      
+                    
         </section>
 
         <section>
@@ -376,8 +441,10 @@ def f(x: Int): Int = {
             <section>
                 <h2 class="remko">Taking a more functional approach</h2>
                 <aside class="notes">
-                    Hardware improvements make FP feasible nowadays. This was different back in the 70's.
-                    One of the pillars of FP is referential transparency.
+                    <ul>
+                        <li>Hardware improvements make FP feasible nowadays. This was different back in the 70's.</li>
+                        <li>One of the pillars of FP is referential transparency.</li>
+                    </ul>
                 </aside>
             </section>
 
@@ -392,14 +459,14 @@ def f(x: Int): Int = {
                 </blockquote>
 
                 <aside class="notes">
-                    Calling a function with the same arguments will return the same result every time.
-
-                    This means that you have no assignments that change the global change.
-                    This is why immutability is so important.
-
-                    But it also has more impact. For example on exceptions (try/catch semantics).
+                    <ul>
+                        <li>Calling a function with same arguments always returns same result</li>
+                        <li>No assignments that change the global change. Hence immutability</li>
+                        <li>Also impacts try / catch semantics</li>
+                    </ul>
                 </aside>
             </section>
+
             <section>
                 <h3>Benefits of Referential Transparency</h3>
 
@@ -429,7 +496,7 @@ def f(x: Int): Int = {
         <!-- Introducing immutability -->
         <section>
             <section>
-                <h2>Stop trying to change me</h2>
+                <h2>So stop trying to change me</h2>
                 <aside class="notes">
                     <ul>
                         <li>Let's look at an attempt without changing state</li>
@@ -454,7 +521,7 @@ class Machine(private val candies: mutable.Buffer[Candy],
             </section>
 
             <section>
-                <h3>Copy on write</h3>
+                <h3>Recipe for immutability</h3>
                 <pre><code class="scala" data-noescape>
 case class Machine(candies: immutable.List[Candy], coins: Int)
 
@@ -470,13 +537,8 @@ object Machine {
             </code></pre>
                 <aside class="notes">
                     <ul>
-                        <li>'case' modifier (no new, implicit vals, copy method</li>
-                        <li>object singleton</li>
-                        <li>state is explicit now</li>
+                        <li>Recipe is we pass state explicitly and make a copy</li>
                     </ul>
-                    <p>Noteworthy is the 'case' modifier in front of Machine.
-                        The Scala compiler will add some synctactic conveniences to that class like:
-                    </p>
                     <ul>
                         <li>a factory method (no new keyword needed)</li>
                         <li>all arguments in the parameter list are implicitly val's, so immutable</li>
@@ -502,7 +564,7 @@ val candies = List(Candy(BLUE), Candy(RED), Candy(GREEN))
 
 val m0 = Machine(candies, 0)
 
-val m1:Machine   = Machine.insertCoin(Coin(), m0)
+val m1: Machine  = Machine.insertCoin(Coin(), m0)
 val (m2, candy0) = Machine.turn(m1)
 
 val m3           = Machine.insertCoin(Coin(), m2)
@@ -517,16 +579,6 @@ m4.candies.size shouldBe 1
                         <li>manual wiring</li>
                         <li>spot the bug?</li>
                     </ul>
-                    TODO fix test shouldBe 6 (test ex machina)
-                    <p>While inserting the first Coin we show the types and singleton object in which the function is
-                        defined,
-                        in lines after that we import those functions and let the compiler figure it out.</p>
-                    <p>Everything is now immutable, but wiring the state through all the function calls is tedious.
-                        And error prone: Do you spot the bug?</p>
-                    <p>The other thing to notice is that this still looks like the imperative way of programming (do
-                        this and then do that).
-                        However, we do not mutate in place, but apply functions and assign them to new variables.
-                    </p>
                 </aside>
             </section>
 
@@ -558,6 +610,7 @@ m4.candies.size shouldBe 1
                 </table>
 
                 <aside class="notes">
+                    So can we do something about the cons?
                     <p>
                         Now we have seen the basic pattern for changing a stateful API to a purely functional API.
                         The key to recovering referential transparency is to make the state updates explicit.
@@ -742,11 +795,11 @@ class State[S, +A](f: S => (S, A)) {
     })
 </span>
 <span class="fragment" data-fragment-index="1">
-         -----                    
+         +---+                    
          |   | -----------------------> s1 
-   s0 -> | f |         -------------         
+   s0 -> | f |         +-----------+         
          |   | -> a -> | transform | ->  b
-         -----         -------------         
+         +---+         +-----------+         
 </span>
                 </code></pre>
                 <aside class="notes">
@@ -817,11 +870,11 @@ class State[S, +A](f: S => (S, A)) {
     })
 </span>
 <span class="fragment" data-fragment-index="1">
-         -----           -----         
+         +---+           +---+         
          |   | ->  s1 -> |   | -> s2 
    s0 -> | f |           | g |         
          |   | ->   a -> |   | -> b
-         -----           -----         
+         +---+           +---+         
 </span>
                 </code></pre>
                 <aside class="notes">
@@ -907,7 +960,7 @@ val (m1, candy) = program.run(m0)
 candy shouldBe Candy(RED)
                 </code></pre>
                 <aside class="notes">
-                    For those familiar with Scala know that flatMaps can be elegantly replaced with a for-comprehension.
+                    Those familiar with Scala know that flatMaps can be elegantly replaced with a for-comprehension.
                 </aside>
             </section>
         </section>
