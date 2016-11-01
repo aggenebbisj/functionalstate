@@ -156,9 +156,23 @@
                 <pre>
                     <code class="scala">trait Foo // Scala</code>
                     <code class="fragment Java">interface Foo; // Java</code>
+                    <code class="fragment scala">def add(x: Int, y: Int): Int  // Scala</code>
+                    <code class="fragment Java">public int add(int x, int y) // Java</code>
                 </pre>
             </section>
             
+            <section>
+                <pre>
+                    <code class="scala">List(1, 2, 3).map(x => x + 1) // Scala</code>
+<code class="fragment Java">// Java
+List&lt;Integer&gt; nums = asList(1, 2, 3);
+nums.stream()
+    .map(x -> x + 1)
+    .collect(Collectors.toList());
+</code>
+                </pre>
+            </section>
+
             <section>
                 <pre>
                     <code class="scala">case class Foo(x: Int) // Scala</code>                    
@@ -568,7 +582,7 @@ val m1: Machine  = Machine.insertCoin(Coin(), m0)
 val (m2, candy0) = Machine.turn(m1)
 
 val m3           = Machine.insertCoin(Coin(), m2)
-val (m4, candy1) = turn(<span class="fragment highlight-red">m1</span>)
+val (m4, candy1) = Machine.turn(<span class="fragment highlight-red">m1</span>)
 
 m4.coins shouldBe 2
 m4.candies.size shouldBe 1
@@ -702,6 +716,7 @@ object Machine {
 case class Machine(coins: Int, candies: List[Candy])
 
 object Machine {
+  
   def turn(): State[Machine, Candy] = <span class="fragment fade-out">new </span>State(m => 
     ( m.copy(candies = m.candies.tail), m.candies.head )
   )
@@ -743,7 +758,7 @@ def insertCoin(coin: Coin<span class="fragment" data-fragment-index="2">)</span>
 
             <section>
                 <!-- LONGEST SLIDE -->
-                <h3>Let's refactor this as well</h3>
+                <h3>Let's refactor this as well...</h3>
                 <pre class="fragment fade-out"
                      style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;"
                      data-fragment-index="0"><code class="scala" data-noescape>
@@ -757,11 +772,25 @@ def insertCoin(coin: Coin) (m: Machine): (Machine, Unit) =
 def insertCoin(coin: Coin): State[Machine, Unit] = State(m =>
     ( m.copy(coins = m.coins + 1), () )
   )
-
                 </code></pre>
                 <aside class="notes">
                     So inserting a coin basically return a datatype holding a function that will take a machine as a
                     parameter and return a new machine with increased number of coins and no concrete return value.
+                </aside>
+            </section>
+
+            <section>
+                <h3>... and run it</h3>
+                <pre><code class="scala" data-noescape>
+// describe
+val insertCoin: State[Machine, Unit] = Machine.insertCoin()
+
+// execute
+val m0 = Machine(0, candies)
+val (m1, _) = insertCoin.run(m0)
+                </code></pre>
+                <aside class="notes">
+                    Something fundamentally has changed. Now turn and insertCoin suddenly are lazy.
                 </aside>
             </section>
 
@@ -770,7 +799,7 @@ def insertCoin(coin: Coin): State[Machine, Unit] = State(m =>
                 <h4>Didn't you just make it more complex?</h4>
                 <aside class="notes">
                     Yes we did make it more complex, but...
-                    This allows us to use combinators (which allow us to rewrite this into something nicer)
+                    This allows us to use combinators (which allow us to compose functions and rewrite this into something nicer)
                     Background: u mad meme: http://nymag.com/selectall/2015/12/nine-canonical-responses-to-u-mad.html
                 </aside>
             </section>
@@ -784,17 +813,23 @@ def insertCoin(coin: Coin): State[Machine, Unit] = State(m =>
             </section>
 
             <section>
+                <pre>
+                    <h2>Let's introduce map first</h2>
+                    <code class="scala">List(1, 2, 3).map(x => x + 1)</code>
+            </section>
+
+            <section>
                 <h3>map</h3>
                 <pre><code class="scala" data-noescape>
 class State[S, +A](f: S => (S, A)) {
                     
   def map[B](transform: A => B): State[S, B] <span class="fragment" data-fragment-index="2">=
-    new State[S, B](s0 => {
-      val (s1, a) = run(s0)
-      (s1, transform(a))
-    })
+    new State[S, B](</span><span class="fragment" data-fragment-index="3">s0 => {</span>
+      <span class="fragment" data-fragment-index="4">val (s1, a) = run(s0)</span>
+      <span class="fragment" data-fragment-index="5">(s1, transform(a))</span>
+    <span class="fragment" data-fragment-index="3">}</span><span class="fragment" data-fragment-index="2">)</span>
 </span>
-<span class="fragment" data-fragment-index="1">
+<span class="fragment" data-fragment-index="6">
          +---+                    
          |   | -----------------------> s1 
    s0 -> | f |         +-----------+         
@@ -812,6 +847,7 @@ class State[S, +A](f: S => (S, A)) {
                     map-function to a b.
                 </aside>
             </section>
+
             <section>
                 <h3>Spin it</h3>
                 <pre><code class="scala" data-noescape>
@@ -834,7 +870,7 @@ color shouldBe BLUE
             </section>
 
             <section>
-                <h3>Or more idiomatic</h3>
+                <h3>Or more idiomatically</h3>
                 <pre><code class="scala" data-noescape>
 val program = turn().map(candy => candy.color)
 
@@ -853,23 +889,38 @@ color shouldBe BLUE
                     to define a result from its arguments."
                 </blockquote>
                 <aside class="notes">
+                    For simplicity's sake, a combinator is a function that uses (composes/combines)
+                    other functions to define a result.
                     Note: from https://en.wikipedia.org/wiki/Combinatory_logic
                 </aside>
-
             </section>
 
             <section>
-                <h3>FlatMap chains two state functions</h3>
+                <h3>So what if want to sequence state functions?</h3>
+                <pre><code class="scala" data-noescape>
+val insert: State[Machine, Unit] = Machine.insertCoin(Coin)
+val turn: State[Machine, Candy] = Machine.turn()
+  
+val program<span class="fragment">: State[Machine, State[Machine, Candy]]</span> =
+    insert.map(_ => turn)
+                </code></pre>
+                <aside class="notes">
+                    So map does not work. Might there be another combinator to discover?
+                </aside>
+            </section>
+
+            <section>
+                <h3>Hello FlatMap!</h3>
                 <pre><code class="scala" data-noescape>
 class State[S, +A](f: S => (S, A)) {
                     
-  def flatMap[B](g: A => State[S, B]): State[S, B] <span class="fragment" data-fragment-index="2">=
+  def flatMap[B](g: A => State[S, B]): State[S, B] <span class="fragment" data-fragment-index="1">=
     State(s0 => {
-      val (s1, a) = run(s0)
-      g(a).run(s1)
-    })
+      val (s1, a) = run(s0)</span>
+      <span class="fragment" data-fragment-index="2">g(a)</span><span class="fragment" data-fragment-index="3">.run(s1)</span>
+    <span class="fragment" data-fragment-index="1">})</span>
 </span>
-<span class="fragment" data-fragment-index="1">
+<span class="fragment" data-fragment-index="4">
          +---+           +---+         
          |   | ->  s1 -> |   | -> s2 
    s0 -> | f |           | g |         
@@ -917,14 +968,16 @@ candy shouldBe Candy(BLUE)
                 </aside>
             </section>
             <section>
-                <h3>This quickly gets cumbersome</h3>
+                <h3>However, this quickly gets cumbersome...</h3>
                 <pre><code class="scala" data-noescape>
 val program =
   insertCoin(Coin)
-    .flatMap(_ => turn()
-      .flatMap(_ => insertCoin(Coin)
-        .flatMap(_ => turn())))
-
+    <span class="fragment" data-fragment-index="1">.flatMap(_ => turn()</span>
+      <span class="fragment" data-fragment-index="2">.flatMap(_ => insertCoin(Coin)</span>
+        <span class="fragment" data-fragment-index="3">.flatMap(_ => turn())</span>
+      <span class="fragment" data-fragment-index="2">)</span>
+    <span class="fragment" data-fragment-index="1">)</span>
+      
 val m0 = Machine(0, candies))
 val (m1, candy) = program.run(m0)
 
@@ -944,9 +997,8 @@ candy shouldBe <span class="fragment">Candy(RED)</span>
                 </aside>
             </section>
 
-
             <section>
-                <h3>Using for comprehensions</h3>
+                <h3>For comprehensions to the rescue</h3>
                 <pre><code class="scala" data-noescape>
 val program = for {
   _ <- insertCoin(Coin)
@@ -961,10 +1013,13 @@ candy shouldBe Candy(RED)
                 </code></pre>
                 <aside class="notes">
                     Those familiar with Scala know that flatMaps can be elegantly replaced with a for-comprehension.
+                    Look at how imperative this looks, but under the hood it's all functional and immutable.
+                    So can we make it even more imperative?
                 </aside>
             </section>
         </section>
-        <!-- Combinators -->
+        <!-- EOF Combinators -->
+
         <section>
             <section>
                 <h3 class="martijn">FP with Getters and Setters</h3>
