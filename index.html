@@ -154,8 +154,8 @@
 
             <section>
                 <pre>
-                    <code class="scala">trait Foo // Scala</code>
-                    <code class="fragment Java">interface Foo; // Java</code>
+                    <code class="scala">trait Foo[A] // Scala</code>
+                    <code class="fragment Java">interface Foo&lt;A&gt; // Java</code>
                     <code class="fragment scala">def add(x: Int, y: Int): Int  // Scala</code>
                     <code class="fragment Java">public int add(int x, int y) // Java</code>
                 </pre>
@@ -175,7 +175,12 @@ nums.stream()
 
             <section>
                 <pre>
-                    <code class="scala">case class Foo(x: Int) // Scala</code>                    
+<code class="scala">// Scala
+case class Foo(x: Int)
+
+case object Foo {
+    def apply(): Foo = new Foo()
+}</code>    
 <code class="Java">// Java
 class Foo {
     final int x;
@@ -435,7 +440,7 @@ def f(x: Int): Int = {
                     
                 <span class="fragment">f(2) --> 5</span>
                     
-                <span class="fragment">f(f(2)) -->14</span>
+                <span class="fragment">f(f(2)) --> 14</span>
                     
                 <span class="fragment">f(f(f(2))) --> 64</span>
                 </code></pre>
@@ -475,7 +480,9 @@ def f(x: Int): Int = {
 
                 <aside class="notes">
                     <ul>
+                        <li>Pure functions</li>
                         <li>Calling a function with same arguments always returns same result</li>
+                        <li>No side effects</li>
                         <li>No assignments that change the global change. Hence immutability</li>
                         <li>Also impacts try / catch semantics</li>
                     </ul>
@@ -546,7 +553,7 @@ object Machine {
   def turn(m: Machine): (Machine, Candy) = 
     ( m.copy(candies = m.candies.tail), m.candies.head )
 
-  def insertCoin(coin: Coin, m: Machine): (Machine) =
+  def insertCoin(coin: Coin, m: Machine): Machine =
     m.copy(coins = m.coins + 1)
 }
             </code></pre>
@@ -835,7 +842,8 @@ class State[S, +A](f: S => (S, A)) {
       <span class="fragment" data-fragment-index="4">val (s1, a) = run(s0)</span>
       <span class="fragment" data-fragment-index="5">(s1, transform(a))</span>
     <span class="fragment" data-fragment-index="3">}</span><span class="fragment" data-fragment-index="2">)</span>
-</span>
+}</span>
+
 <span class="fragment" data-fragment-index="6">
          +---+                    
          |   | -----------------------> s1 
@@ -843,8 +851,10 @@ class State[S, +A](f: S => (S, A)) {
          |   | -> a -> | transform | ->  b
          +---+         +-----------+         
 </span>
+
                 </code></pre>
                 <aside class="notes">
+                    Implementation follows from definition.
                     Ok, now it's getting interesting. What if we want to combine and transform the value.
                     What if we, when running the state function would like to transform the resulting value.
                     Just like with a List we can do that with the map function.
@@ -903,7 +913,7 @@ color shouldBe BLUE
             </section>
 
             <section>
-                <h3>So what if want to sequence state functions?</h3>
+                <h3>Trying to sequence state functions</h3>
                 <pre><code class="scala" data-noescape>
 val insert: State[Machine, Unit] = Machine.insertCoin(Coin)
 val turn: State[Machine, Candy] = Machine.turn()
@@ -922,10 +932,11 @@ val program<span class="fragment">: State[Machine, State[Machine, Candy]]</span>
 class State[S, +A](f: S => (S, A)) {
                     
   def flatMap[B](g: A => State[S, B]): State[S, B] <span class="fragment" data-fragment-index="1">=
-    State(s0 => {
+    new State(s0 => {
       val (s1, a) = run(s0)</span>
       <span class="fragment" data-fragment-index="2">g(a)</span><span class="fragment" data-fragment-index="3">.run(s1)</span>
     <span class="fragment" data-fragment-index="1">})</span>
+}
 </span>
 <span class="fragment" data-fragment-index="4">
          +---+           +---+         
