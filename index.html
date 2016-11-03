@@ -184,25 +184,16 @@
                     </table>
                 </pre>
             </section>
-<!--
-            <section>
-                <pre>
-                    <code class="scala">def add(x: Int, y: Int): Int  // Scala</code>
-                    <code class="fragment Java">public int add(int x, int y) // Java</code>
-                    <code class="fragment scala">List(1, 2, 3).map(x => x + 1) // Scala</code>
-<code class="fragment Java">// Java
-List&lt;Integer&gt; nums = asList(1, 2, 3);
-asList(1, 2, 3).stream()
-    .map(x -> x + 1)
-    .collect(Collectors.toList());
-</code> 
-                </pre>
-            </section>
--->
+
 
             <section>
                 <pre>
-                    <code class="scala">case class Foo(x: Int) // Scala</code>                    
+<code class="scala">// Scala
+case class Foo(x: Int)
+
+case object Foo {
+    def apply(): Foo = new Foo()
+}</code>    
 <code class="Java">// Java
 class Foo {
     final int x;
@@ -474,7 +465,7 @@ def f(x: Int): Int = {
                     
                 <span class="fragment">f(2) --> 5</span>
                     
-                <span class="fragment">f(f(2)) -->14</span>
+                <span class="fragment">f(f(2)) --> 14</span>
                     
                 <span class="fragment">f(f(f(2))) --> 64</span>
                 </code></pre>
@@ -518,7 +509,9 @@ def f(x: Int): Int = {
 
                 <aside class="notes">
                     <ul>
+                        <li>Pure functions</li>
                         <li>Calling a function with same arguments always returns same result</li>
+                        <li>No side effects</li>
                         <li>No assignments that change the global change. Hence immutability</li>
                         <li>Also impacts try / catch semantics</li>
                     </ul>
@@ -589,7 +582,7 @@ object Machine {
   def turn(m: Machine): (Machine, Candy) = 
     ( m.copy(candies = m.candies.tail), m.candies.head )
 
-  def insertCoin(coin: Coin, m: Machine): (Machine) =
+  def insertCoin(coin: Coin, m: Machine): Machine =
     m.copy(coins = m.coins + 1)
 }
             </code></pre>
@@ -868,16 +861,19 @@ case class State[S, +A](f: S => (S, A)) {
       <span class="fragment" data-fragment-index="4">val (s1, a) = run(s0)</span>
       <span class="fragment" data-fragment-index="5">(s1, transform(a))</span>
     <span class="fragment" data-fragment-index="3">}</span><span class="fragment" data-fragment-index="2">)</span>
-                    </span>
-                    <span class="fragment" data-fragment-index="6">
+}</span>
+
+<span class="fragment" data-fragment-index="6">
          +---+                    
          |   | -----------------------> s1 
    s0 -> | f |         +-----------+         
          |   | -> a -> | transform | ->  b
          +---+         +-----------+         
 </span>
+
                 </code></pre>
                 <aside class="notes">
+                    Implementation follows from definition.
                     Ok, now it's getting interesting. What if we want to combine and transform the value.
                     What if we, when running the state function would like to transform the resulting value.
                     Just like with a List we can do that with the map function.
@@ -936,7 +932,7 @@ color shouldBe BLUE
             </section>
 
             <section>
-                <h3>So what if want to sequence state functions?</h3>
+                <h3>Trying to sequence state functions</h3>
                 <pre><code class="scala" data-noescape>
 val insert: State[Machine, Unit] = Machine.insertCoin(Coin)
 val turn: State[Machine, Candy] = Machine.turn()
@@ -955,13 +951,14 @@ val program<span class="fragment">: State[Machine, State[Machine, Candy]]</span>
 case class State[S, +A](f: S => (S, A)) {
                     
   def flatMap[B](g: A => State[S, B]): State[S, B] <span class="fragment" data-fragment-index="1">=
-    State(s0 => {
+    new State(s0 => {
       val (s1, a) = run(s0)</span>
       <span class="fragment" data-fragment-index="2">g(a)</span><span class="fragment"
                                                                       data-fragment-index="3">.run(s1)</span>
     <span class="fragment" data-fragment-index="1">})</span>
-                    </span>
-                    <span class="fragment" data-fragment-index="4">
+}
+</span>
+<span class="fragment" data-fragment-index="4">
          +---+           +---+         
          |   | ->  s1 -> |   | -> s2 
    s0 -> | f |           | g |         
