@@ -4,18 +4,16 @@
 
 ### To run this presentation
 
-Some reveal.js features, like external Markdown and speaker notes, require that presentations run from a local web server. The following instructions will set up such a server as well as all of the development tasks needed to make edits to the reveal.js source code.
-
 1. Install [Node.js](http://nodejs.org/) (1.0.0 or later)
 
-1. Clone the reveal.js repository
+1. Clone the 'presentation' repository
    ```sh
-   $ git clone https://github.com/hakimel/reveal.js.git
+   $ git https://github.com/aggenebbisj/functionalstate.git
    ```
 
-1. Navigate to the reveal.js folder
+1. Navigate to the folder
    ```sh
-   $ cd reveal.js
+   $ cd functionalstate
    ```
 
 1. Install dependencies
@@ -28,4 +26,4 @@ Some reveal.js features, like external Markdown and speaker notes, require that 
    $ npm start
    ```
 
-1. Open <http://localhost:8000> to view your presentation
+1. Open <http://localhost:8000> to view the presentation
