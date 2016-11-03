@@ -2,6 +2,11 @@ html.mybackground body {
     background: linear-gradient(to bottom, #030815, #041b36);
 }
 
+.reveal table tbody td {
+    border: none;
+}
+
+
 .reveal td {
     vertical-align: top;
 }
@@ -14,9 +19,15 @@ html.mybackground body {
 }
 
 .reveal pre {
-    /* font size of the code examples */
-    font-size: 0.60em;
+  /* font size of the code examples */
+  font-size: 0.70em;
 }
+
+.reveal .important {
+    font-size: 120%;
+    text-align: center;
+}
+
 .reveal pre code {
     max-height: 600px;
 }

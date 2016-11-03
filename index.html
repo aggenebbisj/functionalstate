@@ -49,9 +49,9 @@
                         </a>
                     </td>
                     <td><a href="http://www.codestar.nl"><img src="img/logo-simple.svg"
-                             style="border: none; background-color: transparent; vertical-align: middle"
-                             height="75em"/>
-                        </a>
+                                                              style="border: none; background-color: transparent; vertical-align: middle"
+                                                              height="75em"/>
+                    </a>
                     </td>
                 </tr>
                 </tbody>
@@ -104,7 +104,7 @@
         </section>
 
         <section>
-            
+
             <section data-background-image="/img/why.jpg"
                      data-background-size="auto 100%"
                      data-background-color="#ffffff">
@@ -142,36 +142,63 @@
             <section>
                 <h2>Crash course Scala</h2>
             </section>
-            
-            <section>
-                <pre>
-                    <code class="scala">var foo: Int // Scala</code>
-                    <code class="fragment Java">int foo; // Java</code>
-                    <code class="fragment scala">val foo: Int // Scala</code>
-                    <code class="fragment Java">final int foo; // Java</code>
-                </pre>
-            </section>
 
             <section>
                 <pre>
-                    <code class="scala">trait Foo // Scala</code>
-                    <code class="fragment Java">interface Foo; // Java</code>
-                    <code class="fragment scala">def add(x: Int, y: Int): Int  // Scala</code>
-                    <code class="fragment Java">public int add(int x, int y) // Java</code>
-                </pre>
-            </section>
-            
-            <section>
-                <pre>
-                    <code class="scala">List(1, 2, 3).map(x => x + 1) // Scala</code>
-<code class="fragment Java">// Java
-List&lt;Integer&gt; nums = asList(1, 2, 3);
-nums.stream()
+                        <table style="width: 100%">
+                    <thead>
+                    <tr>
+                        <th>Java</th>
+                        <th>Scala</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>
+                            <code class="Java">int foo;</code>
+                        </td>
+                        <td>
+                            <code class="fragment scala">var foo: Int</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code class="Java">final int foo;</code>
+                        </td>
+                        <td>
+                            <code class="fragment scala">val foo: Int</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code class="Java">asList(1, 2, 3).stream()
     .map(x -> x + 1)
     .collect(Collectors.toList());
-</code>
+                        </code>
+                        </td>
+                        <td>
+                            <code class="fragment scala">List(1, 2, 3).map(x => x + 1)</code>
+                        </td>
+                    </tr>
+                    </tbody>
+                    </table>
                 </pre>
             </section>
+<!--
+            <section>
+                <pre>
+                    <code class="scala">def add(x: Int, y: Int): Int  // Scala</code>
+                    <code class="fragment Java">public int add(int x, int y) // Java</code>
+                    <code class="fragment scala">List(1, 2, 3).map(x => x + 1) // Scala</code>
+<code class="fragment Java">// Java
+List&lt;Integer&gt; nums = asList(1, 2, 3);
+asList(1, 2, 3).stream()
+    .map(x -> x + 1)
+    .collect(Collectors.toList());
+</code> 
+                </pre>
+            </section>
+-->
 
             <section>
                 <pre>
@@ -189,8 +216,8 @@ class Foo {
     // and some additional methods like equals, copy, ...
 }</code>
                 </pre>
-            </section>      
-                    
+            </section>
+
         </section>
 
         <section>
@@ -238,6 +265,7 @@ case class Candy(color: Color)
                 <img src="/img/object-oriented-software-construction.jpg"/>
                 <aside class="notes">
                     <p>Who knows this classic writing? Betrand Meyer (1: 1988, 2: 1997)</p>
+                    <p>one of the earliest and most vocal proponents of object-oriented programming (OOP)</p>
                     <p>Command-Query separation principle: Features of a class are</p>
                     <ul>
                         <li><strong>Commands</strong> modify objects, but do <em>not</em> return results</li>
@@ -245,6 +273,7 @@ case class Candy(color: Color)
                             effect
                         </li>
                     </ul>
+                    
                     <ul>
                         <li>First edition written in 1988 by Bertrand Meyer</li>
                         <li>Second edition appeared in 1997 at a whopping 1200 pages</li>
@@ -319,10 +348,14 @@ class Machine(private val candies: mutable.Buffer[Candy],
                 </code></pre>
                 <aside class="notes">
                     <ul>
+                        <li>2 class parameters -> primary constructor</li>
                         <li>Buffer: mutable collection</li>
-                        <li>absence of (), accessor without side-effects</li>
+                        <li>Public is Scala’s default access level.</li>
+                        <li>def = function definition name, parameter list and return type</li>
+                        <li>absence of parenthesis, accessor without side-effects</li>
                     </ul>
                     <p>
+                        2 class parameters -> Scala Compiler will create primary constructor
                         Here the change is that the turn-method return the Candy that falls from the dispenser
                         immediately.
                         The 'command' changes the state and returns information (the dispensed candy)
@@ -345,14 +378,19 @@ val candies = ArrayBuffer(Candy(BLUE),
 
 val machine = new Machine(candies, 0)
 
-machine.insertCoin(Coin())
+<span class="fragment">machine.insertCoin(Coin())
 val candy: Candy = machine.turn()
-
-candy shouldBe Candy(BLUE)
+</span>
+<span class="fragment">candy shouldBe Candy(BLUE)
 machine.getCoins shouldBe 1
+</span>
                 </code></pre>
                 <aside class="notes">
-                    scala ArrayBuffer is like an ArrayList.
+                    <ul>
+                        <li>scala ArrayBuffer is like an ArrayList.</li>
+                        <li>Remember the order! We will use it later</li>
+                    </ul>
+                    
                     <code>candies</code> is a mutable list of candies.
                 </aside>
             </section>
@@ -376,6 +414,7 @@ machine.getCoins shouldBe 1
                 <h3>Sharing is no fun</h3>
                 <aside class="notes">
                     <ul>
+                        <li>Learnt that in kindergarten</li>
                         <li>Concurrency and shared mutable state don't play nicely together</li>
                         <li>Less of a problem back in the days. Now we have quad-core phones</li>
                     </ul>
@@ -396,13 +435,13 @@ machine.getCoins shouldBe 1
             <section>
                 <h3>Consider something simple</h3>
                 <pre><code class="scala" data-trim data-noescape>
-                            def f(x: Int): Int
+                            def f(x: Int): Int <span class="fragment" data-fragment-index="4">= x + 1</span>
                                         
-                <span class="fragment">f(2) --> 3</span>
+                <span class="fragment" data-fragment-index="1">f(2) --> 3</span>
                     
-                <span class="fragment">f(2) --> 3</span>
+                <span class="fragment" data-fragment-index="2">f(2) --> 3</span>
                     
-                <span class="fragment">f(f(2)) --> 4</span>
+                <span class="fragment"  data-fragment-index="3">f(f(2)) --> 4</span>
                     
                 <span class="fragment">f(f(f(2))) --> 5</span>
                 </code></pre>
@@ -440,6 +479,10 @@ def f(x: Int): Int = {
                 <span class="fragment">f(f(f(2))) --> 64</span>
                 </code></pre>
                 <aside class="notes">
+                    <ul>
+                        <li>confusing: side-effect</li>
+                        <li>how can we overcome these problems?</li>
+                    </ul>
                     <p>This is confusing. The changing of state with a wider scope than the function is a side-effect
                         which makes it a lot harder to reason about this piece of code.
                         And to calculate the right value you have to know the history of changes.</p>
@@ -452,7 +495,7 @@ def f(x: Int): Int = {
 
         <!-- A more functional approach -->
         <section>
-            <section data-background-image="img/fp.png" 
+            <section data-background-image="img/fp.png"
                      data-background-size="auto 100%">
                 <h2 class="remko">Taking a more functional approach</h2>
                 <aside class="notes">
@@ -648,22 +691,27 @@ m4.candies.size shouldBe 1
             <section>
                 <h3>Let's look at the type signature</h3>
 
-                <pre><code class="scala" data-noescape>
+                <pre class="important"><code class="scala" data-noescape>
 def turn(m: Machine): (Machine, Candy)
                 </code></pre>
             </section>
 
             <section>
-                <h3><code class="scala">Machine => (Machine, Candy)</code></h3>
-                <aside class="notes">
-                    We are separating the declaration of the manipulation and the computation/the moment that the
-                    manipulation is applied.
-                </aside>
+                <h3>More abstract</h3>
+                
+                <pre class="important"><code class="scala">
+Machine => (Machine, Candy)
+                </code>
+                    </pre>
             </section>
 
             <section>
-                <h3><code class="scala">S<span style="color: red" class="fragment" data-fragment-index="1">0</span> =>
-                    (S<span style="color: red" class="fragment" data-fragment-index="1">1</span>, A)</code></h3>
+                <h3>Even more abstract</h3>
+                
+                <pre class="important"><code class="scala" data-noescape=>
+S<span style="color: red" class="fragment" data-fragment-index="1">0</span> =>(S<span style="color: red" class="fragment" data-fragment-index="1">1</span>, A)
+                </code>
+                </pre>
                 <aside class="notes">
                     Or more abstract, we got a function that takes something that represents the State with an output
                     of a tuple of a new State and a value.
@@ -675,13 +723,15 @@ def turn(m: Machine): (Machine, Candy)
                 <h3>Let's wrap this in a class</h3>
 
                 <pre><code class="scala" data-noescape>      
-class State[S, +A](f: S => (S, A)) {
+case class State[S, +A](f: S => (S, A)) {
         
   def run(initial: S): (S, A) = f(initial)
         
 }
             </code></pre>
                 <aside class="notes">
+                    <p>separating function construction and the computation (applying).</p>
+
                     NB: <code class="scala">new State(f).run(s) == f(s)</code>
                     <p>
                         So we have a class State with two Type parameters S and A for the State and the value.
@@ -691,6 +741,7 @@ class State[S, +A](f: S => (S, A)) {
                     <p>
                         Creating the State does not do anything useful yet.
                         Run will just apply/invoke that function and thus return a tuple of a new state and a value.
+                        We'll get to the more useful part later!
                     </p>
                     <p>
                         Without combinators the class does not do much of course.
@@ -699,29 +750,22 @@ class State[S, +A](f: S => (S, A)) {
                 </aside>
             </section>
 
+
             <section>
                 <h3>Refactor the current turn method</h3>
-                <pre class="fragment fade-out"
-                     style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;"
-                     data-fragment-index="0"><code class="scala" data-noescape>      
+<pre><code class="scala" data-noescape>      
 case class Machine(coins: Int, candies: List[Candy])
 
 object Machine {
                     
   def turn(m: Machine): (Machine, Candy) = 
     ( m.copy(candies = m.candies.tail), m.candies.head )
-                </code></pre>
-                <pre class="fragment fade-in"
-                     style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;"
-                     data-fragment-index="0"><code class="scala" data-noescape>      
-case class Machine(coins: Int, candies: List[Candy])
+<span class="fragment">      
 
-object Machine {
-  
-  def turn(): State[Machine, Candy] = <span class="fragment fade-out">new </span>State(m => 
-    ( m.copy(candies = m.candies.tail), m.candies.head )
+  def turn(): State[Machine, Candy]</span><span class="fragment"> = State(m =></span> 
+<span class="fragment">    ( m.copy(candies = m.candies.tail), m.candies.head )
   )
-                </code></pre>
+</span>                </code></pre>
                 <aside class="notes">
                     If we add an apply function we can even remove the 'new'
                     And again, calling Machine.turn() does not do anything. It just defines a function that will
@@ -729,56 +773,42 @@ object Machine {
                     This is shown below, when the run method is called with a machine, then the result is calculated.
                 </aside>
             </section>
-
+            
             <section>
                 <h3>Ok, but what about inserting a Coin?</h3>
                 <pre><code class="scala" data-noescape>
-def insertCoin(coin: Coin<span class="fragment" data-fragment-index="2">)</span><span class="fragment fade-out"
-                                                                                      data-fragment-index="2">,</span><span
-                        class="fragment" data-fragment-index="2">(</span>m: Machine): <span class="fragment"
+def insertCoin(coin: Coin<span class="fragment" data-fragment-index="3">)</span><span class="fragment fade-out"
+                                                                                      data-fragment-index="3">,</span><span
+                        class="fragment" data-fragment-index="3">(</span>m: Machine): <span class="fragment"
                                                                                             data-fragment-index="1">(</span>Machine<span
-                        class="fragment" data-fragment-index="1">, Unit)</span>
+                        class="fragment" data-fragment-index="1">, Unit) </span>=
+    <span class="fragment" data-fragment-index="2">( </span>m.copy(coins = m.coins + 1)<span class="fragment" data-fragment-index="2">, () )</span>
+
+
+<span class="fragment">def insertCoin(coin: Coin): State[Machine, Unit] </span><span class="fragment">= State(m =></span>
+    <span class="fragment">( m.copy(coins = m.coins + 1), () )
+  )</span>
+
                  </code></pre>
                 <aside class="notes">
                     <p>This does not look like a function S => (S,A),
                         but looking at it more abstractly: the return value from insertCoin is nothing or Unit.</p>
 
-                    <p>And if we are going to use currying of the parameters, we get two parameter lists, with one
-                        that is equal to the State datatype we created.
+                    <p>And if we are going to use currying of the parameters, we get two parameter lists, with the last 
+                        parameter together with the return value are an exact match of the function of the constructor 
+                        of the State datatype.
                         Currying is named after Haskell Brooks Curry , who was an American mathematician and logician.
                         It is the technique of translating the evaluation of a function that takes multiple arguments
                         (or a tuple of arguments) into evaluating a sequence of functions, each with a single argument.
                         In this case we change a function that takes two parameters and returns a tuple of Machine and
-                        Unit
-                        to a function with one parameter (Coin), that returns a function that takes one parameter and
+                        Unit to a function with one parameter (Coin), that returns a function that takes one parameter and
                         returns a tuple of Machine and Unit.
                     <p>So, here we can also refactor it to use the State data type we created.
                     </p>
                 </aside>
             </section>
 
-            <section>
-                <!-- LONGEST SLIDE -->
-                <h3>Let's refactor this as well...</h3>
-                <pre class="fragment fade-out"
-                     style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;"
-                     data-fragment-index="0"><code class="scala" data-noescape>
-def insertCoin(coin: Coin) (m: Machine): (Machine, Unit) =
-  ( m.copy(coins = m.coins + 1), () )
 
-                </code></pre>
-                <pre class="fragment fade-in"
-                     style="position:absolute; margin-left: auto; margin-right: auto; left: 0; right: 0;"
-                     data-fragment-index="0"><code class="scala" data-noescape>
-def insertCoin(coin: Coin): State[Machine, Unit] = State(m =>
-    ( m.copy(coins = m.coins + 1), () )
-  )
-                </code></pre>
-                <aside class="notes">
-                    So inserting a coin basically return a datatype holding a function that will take a machine as a
-                    parameter and return a new machine with increased number of coins and no concrete return value.
-                </aside>
-            </section>
 
             <section>
                 <h3>... and run it</h3>
@@ -788,7 +818,9 @@ val insertCoin: State[Machine, Unit] = Machine.insertCoin()
 
 // execute
 val m0 = Machine(0, candies)
-val (m1, _) = insertCoin.run(m0)
+val (m1, candy) = insertCoin.run(m0)
+
+candy shouldBe Candy(BLUE)
                 </code></pre>
                 <aside class="notes">
                     Something fundamentally has changed. Now turn and insertCoin suddenly are lazy.
@@ -800,7 +832,8 @@ val (m1, _) = insertCoin.run(m0)
                 <h4>Didn't you just make it more complex?</h4>
                 <aside class="notes">
                     Yes we did make it more complex, but...
-                    This allows us to use combinators (which allow us to compose functions and rewrite this into something nicer)
+                    This allows us to use combinators (which allow us to compose functions and rewrite this into
+                    something nicer)
                     Background: u mad meme: http://nymag.com/selectall/2015/12/nine-canonical-responses-to-u-mad.html
                 </aside>
             </section>
@@ -813,7 +846,7 @@ val (m1, _) = insertCoin.run(m0)
                 <h2 class="remko">Composing Functions</h2>
             </section>
 
-            <section data-background-image="img/composingfunctions.jpg" 
+            <section data-background-image="img/composingfunctions.jpg"
                      data-background-size="auto 100%"
                      class="center">
                 <img style="transform: scale(2)" class="fragment" data-src="img/captainplanet.jpeg"/>
@@ -828,15 +861,15 @@ val (m1, _) = insertCoin.run(m0)
             <section>
                 <h3>map</h3>
                 <pre><code class="scala" data-noescape>
-class State[S, +A](f: S => (S, A)) {
+case class State[S, +A](f: S => (S, A)) {
                     
   def map[B](transform: A => B): State[S, B] <span class="fragment" data-fragment-index="2">=
     new State[S, B](</span><span class="fragment" data-fragment-index="3">s0 => {</span>
       <span class="fragment" data-fragment-index="4">val (s1, a) = run(s0)</span>
       <span class="fragment" data-fragment-index="5">(s1, transform(a))</span>
     <span class="fragment" data-fragment-index="3">}</span><span class="fragment" data-fragment-index="2">)</span>
-</span>
-<span class="fragment" data-fragment-index="6">
+                    </span>
+                    <span class="fragment" data-fragment-index="6">
          +---+                    
          |   | -----------------------> s1 
    s0 -> | f |         +-----------+         
@@ -919,15 +952,16 @@ val program<span class="fragment">: State[Machine, State[Machine, Candy]]</span>
             <section>
                 <h3>Hello FlatMap!</h3>
                 <pre><code class="scala" data-noescape>
-class State[S, +A](f: S => (S, A)) {
+case class State[S, +A](f: S => (S, A)) {
                     
   def flatMap[B](g: A => State[S, B]): State[S, B] <span class="fragment" data-fragment-index="1">=
     State(s0 => {
       val (s1, a) = run(s0)</span>
-      <span class="fragment" data-fragment-index="2">g(a)</span><span class="fragment" data-fragment-index="3">.run(s1)</span>
+      <span class="fragment" data-fragment-index="2">g(a)</span><span class="fragment"
+                                                                      data-fragment-index="3">.run(s1)</span>
     <span class="fragment" data-fragment-index="1">})</span>
-</span>
-<span class="fragment" data-fragment-index="4">
+                    </span>
+                    <span class="fragment" data-fragment-index="4">
          +---+           +---+         
          |   | ->  s1 -> |   | -> s2 
    s0 -> | f |           | g |         
@@ -1041,7 +1075,9 @@ candy shouldBe Candy(RED)
                 <pre><code class="scala" data-noescape>
 object State {
   ...  
-  def get[S]: State[S, S] = State(s => (s, s))
+  def get[S]: State[S, S] <span class="fragment">= State(s => 
+      <span class="fragment">(s, s)</span>
+    )</span>
   ...
 }
                 </code></pre>
@@ -1051,7 +1087,9 @@ object State {
                 <pre><code class="scala" data-noescape>
 object State {
   ...  
-  def set[S](newS: S): State[S, Unit] = State(_ => (newS, ()))
+  def set[S](newS: S): State[S, Unit] <span class="fragment">= State(_ => 
+      <span class="fragment">(newS, ())</span>
+    )</span>
   ...
 }
                 </code></pre>
