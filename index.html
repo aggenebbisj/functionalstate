@@ -41,6 +41,10 @@
                 </thead>
                 <tbody>
                 <tr>
+                    <td><small><a href="https://twitter.com/aggenebbisj">@aggenebbisj</a></small></td>
+                    <td><small><a href="https://twitter.com/martijnblankest">@martijnblankest</a></small></td>
+                </tr>
+                <tr>
                     <td>
                         <a href="https://www.siteworkers.nl/">
                             <div class="logo">
@@ -806,14 +810,21 @@ def insertCoin(coin: Coin<span class="fragment" data-fragment-index="3">)</span>
             <section>
                 <h3>... and run it</h3>
                 <pre><code class="scala" data-noescape>
+case class State[S, +A](f: S => (S, A)) {
+                    
+  def run(initial: S): (S, A) = f(initial)
+}
+
+<span class="fragment">                    
 // describe
 val insertCoin: State[Machine, Unit] = Machine.insertCoin()
-
+</span><span class="fragment">
 // execute
 val m0 = Machine(0, candies)
 val (m1, candy) = insertCoin.run(m0)
 
 candy shouldBe Candy(BLUE)
+</span>
                 </code></pre>
                 <aside class="notes">
                     Something fundamentally has changed. Now turn and insertCoin suddenly are lazy.
@@ -837,6 +848,7 @@ candy shouldBe Candy(BLUE)
         <section>
             <section>
                 <h2 class="remko">Composing Functions</h2>
+                <h3 class="remko">Building the library</h3>
             </section>
 
             <section data-background-image="img/composingfunctions.jpg"
@@ -855,6 +867,8 @@ candy shouldBe Candy(BLUE)
                 <h3>map</h3>
                 <pre><code class="scala" data-noescape>
 case class State[S, +A](f: S => (S, A)) {
+
+  def run(initial: S): (S, A) = f(initial)
                     
   def map[B](transform: A => B): State[S, B] <span class="fragment" data-fragment-index="2">=
     new State[S, B](</span><span class="fragment" data-fragment-index="3">s0 => {</span>
@@ -862,7 +876,6 @@ case class State[S, +A](f: S => (S, A)) {
       <span class="fragment" data-fragment-index="5">(s1, transform(a))</span>
     <span class="fragment" data-fragment-index="3">}</span><span class="fragment" data-fragment-index="2">)</span>
 }</span>
-
 <span class="fragment" data-fragment-index="6">
          +---+                    
          |   | -----------------------> s1 
