@@ -119,6 +119,9 @@
                         <li>Use case in real project</li>
                         <li>Single machine planning</li>
                     </ul>
+                    <p>In this presentation we will make the transition from the object-oriented programming
+                        to functional programming. On our way we will build a small library for dealing with
+                        state.</p>
                 </aside>
             </section>
 
@@ -232,6 +235,9 @@ class Foo {
                         <li>insert money</li>
                         <li>turn the knob to get the candy</li>
                     </ol>
+                    <p>The content of the candy machine can be seen as a list of candies.
+                        If you turn the knob you will get the first candy in the list.
+                    </p>
                 </aside>
             </section>
 
@@ -343,7 +349,7 @@ class Machine(private val candies: mutable.Buffer[Candy],
                 </code></pre>
                 <aside class="notes">
                     <ul>
-                        <li>2 class parameters -> primary constructor</li>
+                        <li>2 class parameters -> form the primary constructor</li>
                         <li>Buffer: mutable collection</li>
                         <li>Public is Scala’s default access level.</li>
                         <li>def = function definition name, parameter list and return type</li>
@@ -407,12 +413,20 @@ machine.getCoins shouldBe 1
 
             <section>
                 <h3>Sharing is no fun</h3>
+                
                 <aside class="notes">
                     <ul>
                         <li>Learnt that in kindergarten</li>
-                        <li>Concurrency and shared mutable state don't play nicely together</li>
+                        <li>Concurrency and shared mutable state don't play nicely together. 
+                            Object Orientation hide implementation and they hide exactly the wrong thing.
+                            OO hides mutation (they mutate state) and they share data.
+                            Then you get dataraces for free.
+                        </li>
                         <li>Less of a problem back in the days. Now we have quad-core phones</li>
                     </ul>
+                    <p>Datarace: "A data race occurs when 2 instructions from different threads 
+                        access the same memory location, at least one of these accesses is a write and 
+                        there is no synchronization that is mandating any particular order among these accesses."</p>
                 </aside>
             </section>
 
@@ -845,7 +859,7 @@ candy shouldBe Candy(BLUE)
         <!-- EOF Using a Functional State Data Structure -->
 
         <!-- Combinators -->
-        <section>
+        <section>   
             <section>
                 <h2 class="remko">Composing Functions</h2>
                 <h3 class="remko">Building the library</h3>
@@ -1116,6 +1130,13 @@ def insertCoin(coin: Coin): State[Machine, Unit] = for {
   u <- State.set(m.copy(coins = m.coins + 1))
 } yield u
                 </code></pre>
+                <aside class="notes">
+                    Looking at this method, the only specific part is what is done with the State!
+                    The other stuff is basically boiler plate, that just as well could be part of 
+                    our small library. In this case our library should have something that takes
+                    a function that changes the state, a function from S => S.
+                    And it should be called .....
+                </aside>
             </section>
 
             <section>
@@ -1136,19 +1157,15 @@ def insertCoin(coin: Coin): State[Machine, Unit] =
         </section>
         
         <section>
-            <h2>And there is more ...</h2>
+            <h2>Final version of the library</h2>
             <pre><code class="scala" data-noescape>case class State[S, +A](run: S => (S, A)) {
   def map[B](f: A => B): State[S, B]
 
   def flatMap[B](f: A => State[S, B]): State[S, B]
-
-  def map2[B,C](sb: State[S, B])(f: (A, B) => C): State[S, C]
 }
 
 object State {
   def unit[S, A](a: A): State[S, A]
-
-  def sequence[S, A](sas: List[State[S, A]]): State[S, List[A]]
 
   def modify[S](f: S => S): State[S, Unit]
 
@@ -1157,6 +1174,69 @@ object State {
   def set[S](s: S): State[S, Unit]
 }
                 </code></pre>
+            <aside class="notes">
+                Verwijzing maken naar Cats, fp library voor scala.
+            </aside>
+        </section>
+        
+        <section>
+            <h3>Our code</h3>
+            <pre>
+                        <table style="width: 100%">
+                    <thead>
+                    <tr>
+                        <th>Imperative</th>
+                        <th>Functional</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>
+                            <code class="Java">
+class Machine(var coins: Int,
+              val candies: Buffer[Candy]) {
+  
+
+  def turn() = candies.remove(0)
+
+                                
+                                
+  def insertCoin(coin: Coin) = 
+    coins = coins + 1
+                                
+  def getCoins = coins
+}
+                            </code>
+                        </td>
+                        <td>
+                            <code class="fragment scala">
+case class Machine(coins: Int, candies: List[Candy])
+
+object Machine {
+
+  def turn() = State[Machine, Candy](m =>
+    ( m.copy(candies = m.candies.tail), m.candies.head )
+  )
+    
+  def insertCoin(coin: Coin) =
+    modify[Machine](m => m.copy(coins = m.coins + 1))
+  }
+}
+
+                            </code>
+                        </td>
+                    </tr>
+                    </tbody>
+                    </table>
+                </pre>
+            <aside class="notes">
+                The difference between the 2 are:
+                <ul>
+                    <li>Combination or Separation between data and behaviour</li>
+                    <li>Laziness of the functional code. It is only a description what will be done if invoked.</li>
+                    <li>Data structure and state class are immutable and therefore safe to share</li>
+                </ul>
+            </aside>
         </section>
 
         <section>
