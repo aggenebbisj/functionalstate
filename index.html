@@ -229,7 +229,8 @@ class Foo {
                 <aside class="notes">
                     <p>A vending machine from which you can buy candies.</p>
                     <p>
-                        The vending machine can process two types of inputs from customers. A customer can
+                        The vending machine can process two types of inputs from customers. 
+                        A customer can:
                     </p>
                     <ol>
                         <li>insert money</li>
@@ -250,7 +251,7 @@ case class Candy(color: Color)
                     </code></pre>
                 <aside class="notes">
                     <ul>
-                        <li>case class: members are val, copy</li>
+                        <li>case class: members are val, copy method to make a copy with changed values</li>
                         <li>Color is like a Java enumeration</li>
                         <li>Remember the order of the colors</li>
                     </ul>
@@ -265,8 +266,13 @@ case class Candy(color: Color)
                 <h2>The traditional OO approach</h2>
                 <img src="/img/object-oriented-software-construction.jpg"/>
                 <aside class="notes">
-                    <p>Who knows this classic writing? Betrand Meyer (1: 1988, 2: 1997)</p>
-                    <p>one of the earliest and most vocal proponents of object-oriented programming (OOP)</p>
+                    <p>
+                        Object-Oriented Programming is a programing paradigm based on objects. Objects contain
+                        data and functionality.
+                    </p>
+                    <p>One of the earliest and most vocal proponents of object-oriented programming (OOP).
+                        Who knows this classic writing? Betrand Meyer (1: 1988, 2: 1997)</p>
+                    <p>
                     <p>Command-Query separation principle: Features of a class are</p>
                     <ul>
                         <li><strong>Commands</strong> modify objects, but do <em>not</em> return results</li>
@@ -418,7 +424,7 @@ machine.getCoins shouldBe 1
                     <ul>
                         <li>Learnt that in kindergarten</li>
                         <li>Concurrency and shared mutable state don't play nicely together. 
-                            Object Orientation hide implementation and they hide exactly the wrong thing.
+                            Object Orientation hide implementation and they hide exactly the wrong thing for concurrent programming.
                             OO hides mutation (they mutate state) and they share data.
                             Then you get dataraces for free.
                         </li>
@@ -497,6 +503,7 @@ def f(x: Int): Int = {
                         And to calculate the right value you have to know the history of changes.</p>
                     <p>And it doesn't always have to be variables that are global, this also occurs when the scope of
                         the variable is greater than the function it is used in.</p>
+                    <p>Side-effecting functions do NOT compose!</p>
                 </aside>
             </section>
         </section>
@@ -739,11 +746,20 @@ case class State[S, +A](f: S => (S, A)) {
   def run(initial: S): (S, A) = f(initial)
         
 }
-            </code></pre>
+</code></pre>
+
+                
+<span class="fragment" >
+<pre><code class="scala"  data-noescape>
+
+    new State(f).run(s) == f(s)
+
+</code>
+</pre></span>
                 <aside class="notes">
                     <p>separating function construction and the computation (applying).</p>
 
-                    NB: <code class="scala">new State(f).run(s) == f(s)</code>
+                    NB: 
                     <p>
                         So we have a class State with two Type parameters S and A for the State and the value.
                         The constructor of the class does not take a regular value, but it takes that function
@@ -879,8 +895,7 @@ candy shouldBe Candy(BLUE)
 
             <section>
                 <h3>map</h3>
-                <pre><code class="scala" data-noescape>
-case class State[S, +A](f: S => (S, A)) {
+                <pre><code class="scala" data-noescape>case class State[S, +A](f: S => (S, A)) {
 
   def run(initial: S): (S, A) = f(initial)
                     
@@ -895,10 +910,7 @@ case class State[S, +A](f: S => (S, A)) {
          |   | -----------------------> s1 
    s0 -> | f |         +-----------+         
          |   | -> a -> | transform | ->  b
-         +---+         +-----------+         
-</span>
-
-                </code></pre>
+         +---+         +-----------+</span></code></pre>
                 <aside class="notes">
                     Implementation follows from definition.
                     Ok, now it's getting interesting. What if we want to combine and transform the value.
@@ -1135,6 +1147,7 @@ def insertCoin(coin: Coin): State[Machine, Unit] = for {
                     The other stuff is basically boiler plate, that just as well could be part of 
                     our small library. In this case our library should have something that takes
                     a function that changes the state, a function from S => S.
+                    Through composition we can create new generic functions.
                     And it should be called .....
                 </aside>
             </section>
@@ -1210,7 +1223,7 @@ class Machine(var coins: Int,
                         </td>
                         <td>
                             <code class="fragment scala">
-case class Machine(coins: Int, candies: List[Candy])
+case class Machine(coins: Int,candies: List[Candy])
 
 object Machine {
 
